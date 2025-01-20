@@ -1,39 +1,58 @@
+
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-// Step 1: Define the interface
 export interface User extends Document {
-  name: string;
+  username: string;
   email: string;
   password: string;
-  role: "admin" | "user"; // Enum
+  role: "admin" | "mentor" | "student"; // Enum
   createdAt: Date;
   isVerified: boolean;
-  forgetPasswordToken: string;
-  forgetPasswordTokenExpiry: Date;
-  verifyEmailToken: string;
-  verifyEmailTokenExpiry: Date;
+  forgetPasswordToken: string | null;
+  forgetPasswordTokenExpiry: Date | null;
+  verifyEmailCode: string | null;
+  verifyEmailCodeExpiry: Date | null;
+  profileImg: string;
 }
 
-// Step 2: Create the schema
 const UserSchema: Schema = new Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    role: { type: String, enum: ["admin", "user"], default: "user" },
+    username: {
+      type: String,
+      required: [true, "Username is required"],
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required."],
+      match: [/.+\@.+\..+/, "Please use a valid email address"],
+      unique: true,
+    },
+    password: { type: String, required: [true, "Password is required"] },
+    role: {
+      type: String,
+      enum: ["admin", "mentor", "student"],
+      default: "student",
+    },
     isVerified: { type: Boolean, default: false },
     forgetPasswordToken: { type: String },
     forgetPasswordTokenExpiry: { type: Date },
-    verifyEmailToken: { type: String },
-    verifyEmailTokenExpiry: { type: Date },
+    verifyEmailCode: {
+      type: String,
+      required: [true, "Verify Code is required"],
+    },
+    verifyEmailCodeExpiry: {
+      type: Date,
+      required: [true, "Verify Code Expiry is required"],
+    },
     createdAt: { type: Date, default: Date.now },
+    profileImg: { type: String, default: "" },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
-// Step 3: Create the model
 const User: Model<User> =
   mongoose.models.users || mongoose.model<User>("users", UserSchema);
 

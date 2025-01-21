@@ -5,11 +5,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import * as z from "zod";
 import React, { useState } from "react";
 import { signIn } from "next-auth/react";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
+import { FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -17,10 +13,10 @@ import { signInSchema } from "@/schemas/signInSchema";
 
 // Updated Zod Schema
 
-
 export default function SignInForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
@@ -94,17 +90,22 @@ export default function SignInForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Password</FormLabel>
-                <Input
-                  className="text-black border border-gray-300 dark:text-white dark:border-neutral-700 rounded-md focus:ring-2 focus:ring-blue-500"
-                  placeholder="••••••••"
-                  type="password"
-                  {...field}
-                />
-                {errors.password && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errors.password.message}
-                  </p>
-                )}
+                <div className="relative">
+                  <Input
+                    {...field}
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    autoComplete="off"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-0 px-3 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
               </FormItem>
             )}
           />

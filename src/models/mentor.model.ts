@@ -7,7 +7,6 @@ export interface IMentor extends Document {
   availability: string;
   base_rate: number;
   bio: string;
-  skills: string[];
 }
 
 const MentorSchema: Schema = new Schema(
@@ -21,7 +20,6 @@ const MentorSchema: Schema = new Schema(
     availability: { type: String, required: true },
     base_rate: { type: Number, required: true },
     bio: { type: String },
-    skills: { type: [String] },
   },
   { timestamps: true }
 );

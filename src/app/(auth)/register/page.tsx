@@ -24,7 +24,9 @@ const mentorSchema = z.object({
     .string()
     .nonempty("Password is required")
     .min(6, "Password must be at least 6 characters"),
-  expertise: z.string().min(1, "Expertise is required"),
+  expertise: z
+    .array(z.string().min(1, "Expertise cannot be empty"))
+    .nonempty("At least one expertise is required"),
   availability: z.string().min(1, "Availability is required"),
   base_rate: z.string().min(1, "Base rate is required"),
   bio: z.string().optional(),
@@ -42,6 +44,7 @@ const studentSchema = z.object({
   interests: z
     .array(z.string().min(1, "Interest cannot be empty"))
     .nonempty("At least one interest is required"),
+  bio: z.string().optional(),
 });
 
 export default function SignUpForm() {
@@ -51,6 +54,8 @@ export default function SignUpForm() {
   const [usernameMessage, setUsernameMessage] = useState("");
   const [textColor, setTextColor] = useState("text-red-500");
   const [interest, setInterest] = useState("");
+  const [expertiseInput, setExpertiseInput] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(role === "mentor" ? mentorSchema : studentSchema),
@@ -58,7 +63,7 @@ export default function SignUpForm() {
       username: "",
       email: "",
       password: "",
-      expertise: "",
+      expertise: [] as string[],
       availability: "",
       base_rate: "",
       bio: "",
@@ -122,7 +127,7 @@ export default function SignUpForm() {
       <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
         Register to MentorVerse
       </h2>
-      <p className="mt-2 max-w-sm text-sm text-neutral-600 dark:text-neutral-300">
+      <p className="mt-2 px-2 max-w-sm text-sm text-neutral-600 dark:text-neutral-300">
         Sign up to MentorVerse <br /> If you already have an account,{" "}
         <Link href="/login" className="text-orange-500 hover:underline">
           Login
@@ -152,11 +157,19 @@ export default function SignUpForm() {
             name="username"
             render={({ field }) => (
               <FormItem>
+                <input
+                  type="text"
+                  name="prevent-autofill-username"
+                  autoComplete="off"
+                  style={{ display: "none" }}
+                />
                 <FormLabel>Username</FormLabel>
                 <Input
                   {...field}
                   placeholder="Choose a username"
-                  autoComplete="off"
+                  id="unique-username"
+                  name="new-username"
+                  autoComplete="new-password"
                 />
                 <p className={`text-sm mt-1 ${textColor}`}>{usernameMessage}</p>
               </FormItem>
@@ -184,15 +197,26 @@ export default function SignUpForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Password</FormLabel>
-                <Input
-                  {...field}
-                  type="password"
-                  placeholder="••••••••"
-                  autoComplete="off"
-                />
+                <div className="relative">
+                  <Input
+                    {...field}
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    autoComplete="off"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-0 px-3 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
               </FormItem>
             )}
           />
+
           {/* Role Specific Fields */}
           {role === "mentor" ? (
             <>
@@ -202,7 +226,62 @@ export default function SignUpForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Expertise</FormLabel>
-                    <Input {...field} placeholder="Enter your expertise" />
+                    <div className="flex space-x-2">
+                      <Input
+                        placeholder="Enter expertise"
+                        value={expertiseInput} // Input value from local state
+                        onChange={(e) => setExpertiseInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && expertiseInput.trim()) {
+                            form.setValue("expertise", [
+                              ...(field.value || []), // Fallback to an empty array if undefined
+                              expertiseInput.trim(),
+                            ]);
+                            setExpertiseInput(""); // Clear the input
+                            e.preventDefault(); // Prevent form submission
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="px-3 py-2 bg-gray-800 text-white rounded-md"
+                        onClick={() => {
+                          if (expertiseInput.trim()) {
+                            form.setValue("expertise", [
+                              ...(field.value || []),
+                              expertiseInput.trim(),
+                            ]);
+                            setExpertiseInput(""); // Clear the input
+                          }
+                        }}
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <div className="mt-2">
+                      {/* Display added expertise items */}
+                      {field.value &&
+                        field.value.map((item: string, index: number) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between bg-gray-100 dark:bg-gray-800 p-2 rounded-md mt-1"
+                          >
+                            <span>{item}</span>
+                            <button
+                              type="button"
+                              className="text-red-500"
+                              onClick={() => {
+                                form.setValue(
+                                  "expertise",
+                                  field.value.filter((_, i) => i !== index)
+                                );
+                              }}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                    </div>
                     {errors.expertise && (
                       <p className="text-sm text-red-500 mt-1">
                         {errors.expertise.message}
@@ -210,7 +289,7 @@ export default function SignUpForm() {
                     )}
                   </FormItem>
                 )}
-              />
+              />{" "}
               <FormField
                 control={form.control}
                 name="availability"
@@ -231,11 +310,36 @@ export default function SignUpForm() {
                 name="base_rate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Base Rate</FormLabel>
-                    <Input {...field} placeholder="Enter your base rate" />
+                    <FormLabel>Base Rate (RS)</FormLabel>
+                    <Input
+                      {...field}
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="Enter your base rate in RS"
+                    />
                     {errors.base_rate && (
                       <p className="text-sm text-red-500 mt-1">
                         {errors.base_rate.message}
+                      </p>
+                    )}
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="bio"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bio</FormLabel>
+                    <textarea
+                      {...field}
+                      placeholder="Tell us about yourself"
+                      className="block w-full p-2 border border-gray-300 rounded-md dark:border-neutral-700 dark:bg-black dark:text-white focus:ring-2 focus:ring-blue-500"
+                    ></textarea>
+                    {errors.bio && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.bio.message}
                       </p>
                     )}
                   </FormItem>
@@ -281,7 +385,7 @@ export default function SignUpForm() {
                       />
                       <button
                         type="button"
-                        className="px-3 py-2 bg-blue-600 text-white rounded-md"
+                        className="px-3 py-2 bg-gray-800 text-white rounded-md"
                         onClick={() => {
                           if (interest.trim()) {
                             form.setValue("interests", [
@@ -324,7 +428,7 @@ export default function SignUpForm() {
           )}
 
           <button
-            className="w-full bg-blue-600 text-white p-2 rounded-md"
+            className="relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white mt-4 shadow-md hover:shadow-lg focus:ring-2 focus:ring-offset-2 focus:ring-neutral-600 dark:focus:ring-neutral-300"
             type="submit"
             disabled={isSubmitting}
           >

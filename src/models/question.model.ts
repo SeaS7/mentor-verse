@@ -46,6 +46,6 @@ const QuestionSchema: Schema = new Schema<IQuestion>(
 QuestionSchema.index({ title: "text" });
 QuestionSchema.index({ content: "text" });
 
-const Question = mongoose.model<IQuestion>("Question", QuestionSchema);
+const Question = mongoose.models.question || mongoose.model<IQuestion>("question", QuestionSchema);
 
 export default Question;

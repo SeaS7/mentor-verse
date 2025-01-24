@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
     console.log("username", username);
     console.log("code", code);
-    
+
     // Validate input
     if (!username) {
       return createErrorResponse("Username is required");
@@ -47,7 +47,6 @@ export async function POST(request: Request) {
       ) {
         return createErrorResponse("Invalid or expired verification code", 400);
       }
-      
 
 
       // Mark the user as verified and clear verification fields
@@ -71,7 +70,7 @@ export async function POST(request: Request) {
 
       user.verifyEmailCode = newCode;
       user.verifyEmailCodeExpiry = newExpiry;
-
+      await user.save();
 
       const emailResponse = await sendEmail({
         email: user.email,

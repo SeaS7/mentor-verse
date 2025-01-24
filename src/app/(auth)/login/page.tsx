@@ -9,7 +9,7 @@ import { FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signInSchema } from "@/schemas/signInSchema";
+import { signInSchema } from "@/schemas/loginSchema";
 
 // Updated Zod Schema
 
@@ -117,6 +117,9 @@ export default function SignInForm() {
           >
             {isLoading ? "Logging in..." : "Log in →"}
           </button>
+          <Link href="/forgot-password" className="mt-10 text-sm text-neutral-600 dark:text-neutral-300 hover:underline">
+            Forgot your password?
+          </Link>
         </form>
       </FormProvider>
     </div>

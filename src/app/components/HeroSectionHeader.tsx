@@ -6,6 +6,7 @@ import ShimmerButton from "@/components/magicui/shimmer-button";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { BlurFade } from "@/components/ui/blur-fade";
 import { useSession } from "next-auth/react";
 
 const slugs = [
@@ -62,13 +63,17 @@ const HeroSectionHeader = () => {
       <div className="relative z-10 grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="flex items-center justify-center">
           <div className="space-y-4 text-center">
+          <BlurFade delay={0.25} inView>
             <h1 className="pointer-events-none z-10 whitespace-pre-wrap bg-gradient-to-b from-[#ffd319] via-[#ff2975] to-[#8c1eff] bg-clip-text text-center text-7xl font-bold leading-none tracking-tighter text-transparent">
               Mentor Verse
             </h1>
+            </BlurFade>
+            <BlurFade delay={0.25 * 2} inView>
             <p className="text-center text-xl font-bold leading-none tracking-tighter">
               Ask questions, share knowledge, and collaborate with developers
               worldwide. Join our community and enhance your coding skills!
             </p>
+            </BlurFade>
             <div className="flex items-center justify-center gap-4">
               {status === "authenticated" && session?.user ? (
                 <Link href="/questions/ask">

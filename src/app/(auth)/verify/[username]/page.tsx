@@ -16,6 +16,7 @@ import { useForm } from "react-hook-form";
 import React, { useState, useEffect } from "react";
 import * as z from "zod";
 import { verifySchema } from "@/schemas/verifySchema";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function VerifyAccount() {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function VerifyAccount() {
       code: "",
     },
   });
+  const { toast } = useToast();
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -45,10 +47,15 @@ export default function VerifyAccount() {
         action: "verify",
       });
 
-      form.setError("code", {
-        type: "manual",
-        message: response.data.message || "Verification successful",
-      });
+      if (response.data.success) {
+        // Show success toast message
+        toast({
+          title: "Success",
+          description: "Verification successful. You can now login.",
+          variant: "default", // Assuming your UI component supports variants like success
+        });
+      }
+
 
       router.replace("/login");
     } catch (error) {

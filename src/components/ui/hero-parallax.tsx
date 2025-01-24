@@ -1,9 +1,6 @@
 "use client";
 import React from "react";
-import { cn } from "@/lib/utils";
-import Marquee from "@/components/ui/marquee";
-import { CardBody, CardContainer, CardItem } from "../ui/3d-card";
-import Link from "next/link";
+import {Marquee} from "@/components/ui/marquee";
 
 export const HeroParallax = ({
   header,

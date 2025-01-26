@@ -1,44 +1,38 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-// Define interface for TypeScript
 export interface IComment extends Document {
   content: string;
-  type: "answer" | "question";
-  typeId: mongoose.Types.ObjectId;
   authorId: mongoose.Types.ObjectId;
+  type: "question" | "answer";
+  typeId: mongoose.Types.ObjectId;
+  createdAt: Date;
 }
 
-// Define Comment Schema
 const CommentSchema: Schema = new Schema<IComment>(
   {
     content: {
       type: String,
       required: true,
-      maxlength: 10000, // Limit content length as per Appwrite
-    },
-    type: {
-      type: String,
-      enum: ["answer", "question"],
-      required: true,
-    },
-    typeId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      refPath: "type", // Dynamic reference to either Answer or Question model
+      maxlength: 2000,
     },
     authorId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "User",
     },
+    type: {
+      type: String,
+      required: true,
+      enum: ["question", "answer"],
+    },
+    typeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+    },
   },
   { timestamps: true }
 );
 
-// Create Indexes
-CommentSchema.index({ typeId: 1 }, { unique: false });
-CommentSchema.index({ authorId: 1 }, { unique: false });
-
-const Comment = mongoose.model<IComment>("Comment", CommentSchema);
+const Comment = mongoose.models.Comment || mongoose.model<IComment>("Comment", CommentSchema);
 
 export default Comment;

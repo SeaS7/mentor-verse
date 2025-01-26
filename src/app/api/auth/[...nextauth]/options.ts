@@ -2,7 +2,7 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/dbConfig';
-import UserModel from '@/models/user.model';
+import User from '@/models/user.model';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials: any): Promise<any> {
         await dbConnect();
         try {
-          const user = await UserModel.findOne({
+          const user = await User.findOne({
             $or: [
               { email: credentials.identifier },
               { username: credentials.identifier },
@@ -50,6 +50,7 @@ export const authOptions: NextAuthOptions = {
         token.isVerified = user.isVerified;
         token.role = user.role;
         token.username = user.username;
+        token.profileImg = user.profileImg;
       }
       return token;
     },
@@ -59,6 +60,7 @@ export const authOptions: NextAuthOptions = {
         session.user.isVerified = token.isVerified;
         session.user.role = token.role;
         session.user.username = token.username;
+        session.user.profileImg = token.profileImg;
       }
       return session;
     },

@@ -8,19 +8,11 @@ function createErrorResponse(message: string, status = 400) {
 }
 
 // Create Question (POST)
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   await dbConnect();
 
   try {
-    const formData = await request.formData();
-
-    const title = formData.get("title") as string;
-    const content = formData.get("content") as string;
-    const authorId = formData.get("authorId") as string;
-    const tags = JSON.parse(formData.get("tags") as string);
-    const attachmentId = formData.get("attachmentId") as string;
-    console.log("attachmentId", attachmentId);
-    
+    const { title, content, authorId, tags, attachment } = await request.json();
 
     if (!title || !content || !authorId) {
       return createErrorResponse("Title, content, and authorId are required");
@@ -31,10 +23,8 @@ export async function POST(request: Request) {
       content,
       authorId,
       tags,
-      attachmentId : attachmentId || '',
+      attachmentId: attachment || "",
     });
-    console.log("newQuestion", newQuestion);
-    
 
     return NextResponse.json({ success: true, data: newQuestion }, { status: 201 });
   } catch (error) {
@@ -48,13 +38,7 @@ export async function PUT(request: NextRequest) {
   await dbConnect();
 
   try {
-    const formData = await request.formData();
-
-    const id = formData.get("id") as string;
-    const title = formData.get("title") as string;
-    const content = formData.get("content") as string;
-    const tags = JSON.parse(formData.get("tags") as string);
-    const attachmentId = formData.get("attachmentId") as string;
+    const { id, title, content, tags, attachment } = await request.json();
 
     if (!id) {
       return createErrorResponse("Question ID is required");
@@ -62,7 +46,7 @@ export async function PUT(request: NextRequest) {
 
     const updatedQuestion = await Question.findByIdAndUpdate(
       id,
-      { title, content, tags, attachmentId },
+      { title, content, tags, attachmentId: attachment || "" },
       { new: true, runValidators: true }
     );
 
@@ -86,8 +70,7 @@ export async function DELETE(request: NextRequest) {
   await dbConnect();
 
   try {
-    const formData = await request.formData();
-    const id = formData.get("id") as string;
+    const { id } = await request.json();
 
     if (!id) {
       return createErrorResponse("Question ID is required");
@@ -106,5 +89,37 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error("Error deleting question:", error);
     return createErrorResponse("Error deleting question", 500);
+  }
+}
+
+
+
+export async function GET(request: Request) {
+  await dbConnect();
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const questionId = searchParams.get("questionId");
+    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit") as string, 10) : 15;
+
+    const query: any = {};
+    if (questionId) {
+      query._id = questionId;
+    }
+
+    const questions = await Question.find(query).limit(limit);
+
+    if (!questions.length) {
+      return createErrorResponse("No questions found", 404);
+    }
+    console.log("questions",questions);
+    
+    return NextResponse.json({
+      success: true,
+      data: questions,
+    });
+  } catch (error) {
+    console.error("Error fetching questions:", error);
+    return createErrorResponse("Error fetching questions", 500);
   }
 }

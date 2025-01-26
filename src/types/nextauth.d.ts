@@ -9,6 +9,7 @@ declare module "next-auth" {
       password?: string;
       role?: "admin" | "mentor" | "student"; // Enum
       isVerified?: boolean;
+      profileImg?: string;
     } & DefaultSession["user"];
   }
 
@@ -22,6 +23,7 @@ declare module "next-auth" {
       password?: string;
       role?: "admin" | "mentor" | "student"; // Enum
       isVerified?: boolean;
+      profileImg?: string;
   }
 }
 

@@ -45,20 +45,25 @@ const QuestionForm = ({ question }: { question?: any }) => {
     attachment: null as File | null,
   });
 
-
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
 
   const createQuestion = async () => {
+    let attachmentUrl = "";
 
-    const formDataObj = new FormData();
-    formDataObj.append("title", formData.title);
-    formDataObj.append("content", formData.content);
-    formDataObj.append("authorId", session?.user._id,);
-    formDataObj.append("tags", JSON.stringify(Array.from(formData.tags)));
-    formDataObj.append("attachment", formData.attachment || '');
+    if (formData.attachment) {
+      attachmentUrl = await axios
+        .post("/api/upload-media",formData.attachment)
+        .then((res) => res.data.url);
+    }
 
-    const response = await axios.post("/api/questions", formDataObj);
+    const response = await axios.post("/api/questions", {
+      title: formData.title,
+      content: formData.content,
+      authorId: session?.user._id,
+      tags: Array.from(formData.tags),
+      attachment: attachmentUrl,
+    });
 
     return response.data;
   };
@@ -66,16 +71,21 @@ const QuestionForm = ({ question }: { question?: any }) => {
   const updateQuestion = async () => {
     if (!question) throw new Error("Please provide a question");
 
-    const formDataObj = new FormData();
-    formDataObj.append("id", question._id);
-    formDataObj.append("title", formData.title);
-    formDataObj.append("content", formData.content);
-    formDataObj.append("tags", JSON.stringify(Array.from(formData.tags)));
+    let attachmentUrl = question.attachmentId;
+
     if (formData.attachment) {
-      formDataObj.append("attachment", formData.attachment);
+      attachmentUrl = await axios
+        .post("/api/upload-media", formData.attachment)
+        .then((res) => res.data.url);
     }
 
-    const response = await axios.put("/api/questions/add-question", formDataObj);
+    const response = await axios.put("/api/questions", {
+      id: question._id,
+      title: formData.title,
+      content: formData.content,
+      tags: Array.from(formData.tags),
+      attachment: attachmentUrl,
+    });
 
     return response.data;
   };
@@ -92,7 +102,9 @@ const QuestionForm = ({ question }: { question?: any }) => {
     setError("");
 
     try {
-      const response = question ? await updateQuestion() : await createQuestion();
+      const response = question
+        ? await updateQuestion()
+        : await createQuestion();
       router.push(`/questions/${response._id}/${slugify(formData.title)}`);
     } catch (error: any) {
       setError(error.response?.data?.message || "Error submitting question");
@@ -194,14 +206,19 @@ const QuestionForm = ({ question }: { question?: any }) => {
         </div>
         <div className="flex flex-wrap gap-2">
           {Array.from(formData.tags).map((tag, index) => (
-            <div key={index} className="flex items-center gap-2 bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-md">
+            <div
+              key={index}
+              className="flex items-center gap-2 bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-md"
+            >
               <span>{tag}</span>
               <button
                 type="button"
                 onClick={() => {
                   setFormData((prev) => ({
                     ...prev,
-                    tags: new Set(Array.from(prev.tags).filter((t) => t !== tag)),
+                    tags: new Set(
+                      Array.from(prev.tags).filter((t) => t !== tag)
+                    ),
                   }));
                 }}
               >

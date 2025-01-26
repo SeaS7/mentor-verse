@@ -1,7 +1,9 @@
+
 import { NeonGradientCard } from "@/components/magicui/neon-gradient-card";
 import Header from "@/app/components/Header";
 import HeroSection from "./components/HeroSection";
-
+import LatestQuestions from "./components/LatestQuestions";
+import TopContributers from "./components/TopContributers";
 export default function Home() {
   return (
     <main className="flex flex-col items-center justify-center">
@@ -9,9 +11,13 @@ export default function Home() {
       <HeroSection />
       <div className="flex flex-wrap md:flex-row-reverse">
         <div className="w-full md:w-1/2">
-          <div className="px-5"></div>
+          <div className="px-5">
+            <TopContributers />
+          </div>
         </div>
-        <div className="w-full md:w-1/2"></div>
+        <div className="w-full md:w-1/2">
+          <LatestQuestions />
+        </div>
       </div>
       <div className="w-4/5">
         <NeonGradientCard className="w-full items-center justify-center text-center my-10">

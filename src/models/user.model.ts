@@ -13,6 +13,7 @@ export interface User extends Document {
   verifyEmailCode: string | null;
   verifyEmailCodeExpiry: Date | null;
   profileImg: string;
+  reputation: number;
 }
 
 const UserSchema: Schema = new Schema(
@@ -45,12 +46,13 @@ const UserSchema: Schema = new Schema(
       type: Date,
       required: [true, "Verify Code Expiry is required"],
     },
+    reputation: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now },
     profileImg: { type: String, default: "" },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const User: Model<User> =

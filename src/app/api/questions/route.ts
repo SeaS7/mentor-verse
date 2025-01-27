@@ -108,12 +108,13 @@ export async function GET(request: Request) {
     }
 
     const questions = await Question.find(query).limit(limit);
+    console.log("questions", questions);
+
 
     if (!questions.length) {
       return createErrorResponse("No questions found", 404);
     }
-    console.log("questions",questions);
-    
+
     return NextResponse.json({
       success: true,
       data: questions,

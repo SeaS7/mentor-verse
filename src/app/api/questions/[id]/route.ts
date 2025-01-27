@@ -11,13 +11,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   await dbConnect();
 
   try {
-    const { id } = params;
+    const { id } = await params;
 
-    if (!id) {
-      return createErrorResponse("Question ID is required", 400);
-    }
-
-    const question = await Question.findById(id).populate("authorId", "username profileImg");
+    const question = await Question.findById(id)
 
     if (!question) {
       return createErrorResponse("Question not found", 404);

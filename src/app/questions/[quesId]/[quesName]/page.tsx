@@ -1,5 +1,7 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
+import { useParams } from "next/navigation"; // For dynamically unwrapping params
 import Answers from "@/components/Answers";
 import Comments from "@/components/Comments";
 import { MarkdownPreview } from "@/components/RTE";
@@ -8,16 +10,16 @@ import ShimmerButton from "@/components/magicui/shimmer-button";
 import { useSession } from "next-auth/react";
 import convertDateToRelativeTime from "@/utils/relativeTime";
 import slugify from "@/utils/slugify";
-import { useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
 import DeleteQuestion from "./DeleteQuestion";
 import EditQuestion from "./EditQuestion";
 import { TracingBeam } from "@/components/ui/tracing-beam";
-import { getProfileImage } from "@/utils/getProfileImage";
 
-const Page = ({ params }: { params: { quesId: string; quesName: string } }) => {
+const Page = () => {
+  const params = useParams(); // Dynamically fetch params
+  const quesId = params?.quesId as string; // Extract quesId
+
   const { data: session } = useSession();
 
   const [question, setQuestion] = useState<any>(null);
@@ -26,26 +28,29 @@ const Page = ({ params }: { params: { quesId: string; quesName: string } }) => {
   const [downvotes, setDownvotes] = useState(0);
   const [comments, setComments] = useState([]);
   const [avatars, setAvatars] = React.useState<string | null>(null);
-  
-      React.useEffect(() => {
-          getProfileImage(question.author.id).then(setAvatars);
-      }, [question.author.id]);
 
   useEffect(() => {
+    if (!quesId) return;
+
     const fetchQuestionData = async () => {
       try {
-        const [questionRes, answersRes, upvoteRes, downvoteRes, commentsRes] = await Promise.all([
-          axios.get(`/api/questions/${params.quesId}`),
-          axios.get(`/api/answers?questionId=${params.quesId}`),
-          axios.get(`/api/votes?type=question&typeId=${params.quesId}&status=upvoted`),
-          axios.get(`/api/votes?type=question&typeId=${params.quesId}&status=downvoted`),
-          axios.get(`/api/comments?type=question&typeId=${params.quesId}`),
-        ]);
+        const [questionRes, answersRes, upvoteRes, downvoteRes, commentsRes] =
+          await Promise.all([
+            axios.get(`/api/questions/${quesId}`),
+            axios.get(`/api/answer?questionId=${quesId}`),
+            axios.get(
+              `/api/votes?type=question&typeId=${quesId}&status=upvoted`
+            ),
+            axios.get(
+              `/api/votes?type=question&typeId=${quesId}&status=downvoted`
+            ),
+            axios.get(`/api/comments?type=question&typeId=${quesId}`),
+          ]);
 
         setQuestion(questionRes.data.data);
         setAnswers(answersRes.data.data);
-        setUpvotes(upvoteRes.data.count);
-        setDownvotes(downvoteRes.data.count);
+        setUpvotes(upvoteRes.data.count || 0);
+        setDownvotes(downvoteRes.data.count || 0);
         setComments(commentsRes.data.data);
       } catch (error) {
         console.error("Error fetching question details:", error);
@@ -53,7 +58,7 @@ const Page = ({ params }: { params: { quesId: string; quesName: string } }) => {
     };
 
     fetchQuestionData();
-  }, [params.quesId]);
+  }, [quesId]);
 
   if (!question) {
     return <div className="text-center mt-10 text-lg">Loading question...</div>;
@@ -66,14 +71,20 @@ const Page = ({ params }: { params: { quesId: string; quesName: string } }) => {
           <div className="w-full">
             <h1 className="mb-1 text-3xl font-bold">{question.title}</h1>
             <div className="flex gap-4 text-sm">
-              <span>Asked {convertDateToRelativeTime(new Date(question.createdAt))}</span>
-              <span>Answers {answers.length}</span>
-              <span>Votes {upvotes - downvotes}</span>
+              <span>
+                Asked {convertDateToRelativeTime(new Date(question.createdAt))}
+              </span>
+              <span>Answers {answers.length || 0}</span>
+              <span>
+                Votes {isNaN(upvotes - downvotes) ? "0" : upvotes - downvotes}
+              </span>
             </div>
           </div>
           <Link href="/questions/ask" className="ml-auto inline-block shrink-0">
             <ShimmerButton className="shadow-2xl">
-              Ask a question
+              <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
+                Ask a question
+              </span>
             </ShimmerButton>
           </Link>
         </div>
@@ -86,10 +97,17 @@ const Page = ({ params }: { params: { quesId: string; quesName: string } }) => {
               upvotesCount={upvotes}
               downvotesCount={downvotes}
             />
-            {session?.user?.id === question.authorId && (
+            {session?.user?._id === question.authorId && (
               <>
-                <EditQuestion questionId={question._id} questionTitle={question.title} authorId={question.authorId} />
-                <DeleteQuestion questionId={question._id} authorId={question.authorId} />
+                <EditQuestion
+                  questionId={question._id}
+                  questionTitle={question.title}
+                  authorId={question.authorId}
+                />
+                <DeleteQuestion
+                  questionId={question._id}
+                  authorId={question.authorId}
+                />
               </>
             )}
           </div>
@@ -118,24 +136,29 @@ const Page = ({ params }: { params: { quesId: string; quesName: string } }) => {
             <div className="mt-4 flex items-center justify-end gap-1">
               <picture>
                 <img
-                  src={ avatars || "/public/defaultUser.png"}
-                  alt={question.author.name}
+                  src={avatars || "/public/defaultUser.png"}
+                  alt={question?.author?.name || "Unknown Author"}
                   className="rounded-lg"
                 />
               </picture>
               <div className="block leading-tight">
                 <Link
-                  href={`/users/${question.authorId}/${slugify(question.author.name)}`}
+                  href={`/users/${question.authorId}/${slugify(question?.author?.name || "")}`}
                   className="text-orange-500 hover:text-orange-600"
                 >
-                  {question.author.name}
+                  {question?.author?.name || "Anonymous"}
                 </Link>
                 <p>
-                  <strong>{question.author.reputation}</strong>
+                  <strong>{question?.author?.reputation || 0}</strong>
                 </p>
               </div>
             </div>
-            <Comments initialComments={comments} type="question" typeId={question._id} className="mt-4" />
+            <Comments
+              initialComments={comments}
+              type="question"
+              typeId={question._id}
+              className="mt-4"
+            />
             <hr className="my-4 border-white/40" />
           </div>
         </div>

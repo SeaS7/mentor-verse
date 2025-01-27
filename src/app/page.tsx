@@ -20,7 +20,7 @@ export default function Home() {
         </div>
       </div>
       <div className="w-4/5">
-        <NeonGradientCard className="w-full items-center justify-center text-center my-10">
+        <NeonGradientCard className="w-full items-center justify-center text-center my-10 ">
           <div className="p-10">
             <span className="pointer-events-none z-10 h-full whitespace-pre-wrap bg-gradient-to-br from-[#ff2975] from-35% to-[#00FFF1] bg-clip-text text-center text-6xl font-bold leading-none tracking-tighter text-transparent dark:drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
               JOIN NOW

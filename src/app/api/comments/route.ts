@@ -59,3 +59,36 @@ export async function DELETE(request: Request) {
     return createErrorResponse("Error deleting comment", 500);
   }
 }
+
+export async function GET(request: Request) {
+  await dbConnect();
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get("type");
+    const typeId = searchParams.get("typeId");
+    const limit = parseInt(searchParams.get("limit") || "10");
+
+    if (!type || !typeId) {
+      return NextResponse.json(
+        { success: false, message: "Type and Type ID are required" },
+        { status: 400 }
+      );
+    }
+
+    const comment = await Comment.find({ type, typeId })
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    return NextResponse.json(
+      { success: true, data: comment },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+    return NextResponse.json(
+      { success: false, message: "Error fetching votes" },
+      { status: 500 }
+    );
+  }
+}

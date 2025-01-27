@@ -1,6 +1,7 @@
 "use client";
 
 import QuestionCard from "@/components/QuestionCard";
+import { getUserAndQuestionStats } from "@/utils/questionStats";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
@@ -20,6 +21,8 @@ const LatestQuestions = () => {
         );
         const questionData = await Promise.all(
           questionRes.data.data.map(async (ques: any) => {
+
+            const result = await getUserAndQuestionStats(ques.authorId, ques._id);
             // const [answersRes, votesRes] = await Promise.all([
             //   axios.get(`/api/answer`, {
             //     params: { questionId: ques._id},
@@ -31,9 +34,10 @@ const LatestQuestions = () => {
 
             return {
               ...ques,
+              result,
               // totalAnswers: answersRes.data.length(),
               // totalVotes: votesRes.data.length(),
-              author: ques.author,
+              // author: ques.author,
             };
           })
         );

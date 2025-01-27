@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import User from '../models/user.model';
 type ConnectionObject = {
   isConnected?: number;
 };

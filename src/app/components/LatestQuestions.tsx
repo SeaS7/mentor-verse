@@ -1,9 +1,19 @@
 "use client";
 
 import QuestionCard from "@/components/QuestionCard";
-import { getUserAndQuestionStats } from "@/utils/questionStats";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+
+const SkeletonLoader = () => (
+  <div className="space-y-4 animate-pulse">
+    {Array.from({ length: 5 }).map((_, index) => (
+      <div
+        key={index}
+        className="h-32 min-w-80 rounded-lg bg-gray-300 dark:bg-gray-700"
+      ></div>
+    ))}
+  </div>
+);
 
 const LatestQuestions = () => {
   const [questions, setQuestions] = useState<any[]>([]);
@@ -12,37 +22,11 @@ const LatestQuestions = () => {
   useEffect(() => {
     const fetchLatestQuestions = async () => {
       try {
-        // Fetch latest 5 questions
-        const questionRes = await axios.get(
-          `/api/questions`,
-          {
-            params: { limit: 5 },
-          }
-        );
-        const questionData = await Promise.all(
-          questionRes.data.data.map(async (ques: any) => {
+        const response = await axios.get(`/api/questions`, {
+          params: { limit: 5 },
+        });
 
-            const result = await getUserAndQuestionStats(ques.authorId, ques._id);
-            // const [answersRes, votesRes] = await Promise.all([
-            //   axios.get(`/api/answer`, {
-            //     params: { questionId: ques._id},
-            //   }),
-            //   axios.get(`/api/votes`, {
-            //     params: { type: "question", typeId: ques._id},
-            //   }),
-            // ]);
-
-            return {
-              ...ques,
-              result,
-              // totalAnswers: answersRes.data.length(),
-              // totalVotes: votesRes.data.length(),
-              // author: ques.author,
-            };
-          })
-        );
-
-        setQuestions(questionData);
+        setQuestions(response.data.data);
       } catch (error) {
         console.error("Error fetching latest questions:", error);
       } finally {
@@ -56,7 +40,7 @@ const LatestQuestions = () => {
   return (
     <div className="space-y-6">
       {loading ? (
-        <p className="text-center text-gray-500">Loading latest questions...</p>
+        <SkeletonLoader />
       ) : questions.length > 0 ? (
         questions.map((question) => (
           <QuestionCard key={question._id} ques={question} />

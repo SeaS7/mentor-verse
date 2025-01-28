@@ -1,6 +1,9 @@
 import { NextResponse, NextRequest } from "next/server";
 import dbConnect from "@/lib/dbConfig";
 import Question from "@/models/question.model";
+import Answer from "@/models/answer.model";
+import Vote from "@/models/vote.model";
+import { NextApiRequest, NextApiResponse } from "next";
 
 // Helper function for error response
 function createErrorResponse(message: string, status = 400) {
@@ -94,33 +97,51 @@ export async function DELETE(request: NextRequest) {
 
 
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   await dbConnect();
 
   try {
+    // Parse query parameters
     const { searchParams } = new URL(request.url);
-    const questionId = searchParams.get("questionId");
-    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit") as string, 10) : 15;
+    const limit = Number(searchParams.get("limit") || 5);
 
-    const query: any = {};
-    if (questionId) {
-      query._id = questionId;
+    // Fetch questions with pagination and populate the author details
+    const questions = await Question.find({})
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate("authorId", "username reputation") // Fetch username and reputation from User model
+      .lean();
+
+    if (!questions || questions.length === 0) {
+      return NextResponse.json(
+        { success: true, data: [], message: "No questions found." },
+        { status: 200 }
+      );
     }
 
-    const questions = await Question.find(query).limit(limit);
-    console.log("questions", questions);
+    // Fetch additional stats for each question in parallel
+    const questionStats = await Promise.all(
+      questions.map(async (ques) => {
+        const [totalAnswers, totalUpvotes, totalDownvotes] = await Promise.all([
+          Answer.countDocuments({ questionId: ques._id }), // Count answers
+          Vote.countDocuments({ type: "question", typeId: ques._id, voteStatus: "upvoted" }), // Count upvotes
+          Vote.countDocuments({ type: "question", typeId: ques._id, voteStatus: "downvoted" }), // Count downvotes
+        ]);
 
+        return {
+          ...ques,
+          totalAnswers,
+          totalVotes: totalUpvotes - totalDownvotes, // Calculate total votes
+        };
+      })
+    );
 
-    if (!questions.length) {
-      return createErrorResponse("No questions found", 404);
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: questions,
-    });
+    return NextResponse.json({ success: true, data: questionStats }, { status: 200 });
   } catch (error) {
     console.error("Error fetching questions:", error);
-    return createErrorResponse("Error fetching questions", 500);
+    return NextResponse.json(
+      { success: false, message: "Server error" },
+      { status: 500 }
+    );
   }
 }

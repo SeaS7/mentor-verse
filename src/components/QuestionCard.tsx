@@ -3,30 +3,10 @@ import { BorderBeam } from "@/components/magicui/border-beam";
 import Link from "next/link";
 import slugify from "@/utils/slugify";
 import convertDateToRelativeTime from "@/utils/relativeTime";
-import { getUserAndQuestionStats } from "@/utils/questionStats";
 
 const QuestionCard = ({ ques }: { ques: any }) => {
   const [height, setHeight] = React.useState(0);
   const ref = React.useRef<HTMLDivElement>(null);
-
-  // const [stats, setStats] = React.useState<any>(null);
-  // const [loading, setLoading] = React.useState<boolean>(true);
-
-  // React.useEffect(() => {
-  //   // Fetch user and question stats
-  //   const fetchStats = async () => {
-  //     try {
-  //       const result = await getUserAndQuestionStats(ques.authorId, ques._id);
-  //       setStats(result);
-  //     } catch (error) {
-  //       console.error("Error fetching stats:", error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchStats();
-  // }, [ques.authorId, ques._id]);
 
   React.useEffect(() => {
     if (ref.current) {
@@ -42,9 +22,8 @@ const QuestionCard = ({ ques }: { ques: any }) => {
     >
       <BorderBeam size={height} duration={12} delay={9} />
       <div className="relative shrink-0 text-sm sm:text-right">
-        {/* Render stats only if data is loaded */}
-            <p>{ques.result.questionStats.totalVotes} votes</p>
-            <p>{ques.result.questionStats.totalAnswers} answers</p>
+        <p>{ques.totalVotes} votes</p>
+        <p>{ques.totalAnswers} answers</p>
       </div>
       <div className="relative w-full">
         <Link
@@ -65,15 +44,16 @@ const QuestionCard = ({ ques }: { ques: any }) => {
           ))}
           <div className="ml-auto flex items-center gap-1">
             <Link
-              href={`/users/${ques.authorId}/${slugify(ques.result?.user?.username || "")}`}
+              href={`/users/${ques.authorId?._id || "unknown"}/${slugify(
+                ques.authorId?.username || "anonymous"
+              )}`}
               className="text-orange-500 hover:text-orange-600"
             >
-              {ques.result?.user?.username || "Loading..."}
+              {ques.authorId?.username || "Anonymous"}
             </Link>
-            <strong>
-              &quot;{ques.result?.user?.reputation ?? "N/A"}&quot;
-            </strong>
+            <strong>&quot;{ques.authorId?.reputation ?? "N/A"}&quot;</strong>
           </div>
+
           <span>
             asked {convertDateToRelativeTime(new Date(ques.createdAt))}
           </span>

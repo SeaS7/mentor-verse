@@ -1,7 +1,6 @@
-
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-export interface User extends Document {
+export interface IUser extends Document {
   username: string;
   email: string;
   password: string;
@@ -16,7 +15,7 @@ export interface User extends Document {
   reputation: number;
 }
 
-const UserSchema: Schema = new Schema(
+const UserSchema: Schema<IUser> = new Schema(
   {
     username: {
       type: String,
@@ -36,26 +35,20 @@ const UserSchema: Schema = new Schema(
       default: "student",
     },
     isVerified: { type: Boolean, default: false },
-    forgetPasswordToken: { type: String },
-    forgetPasswordTokenExpiry: { type: Date },
-    verifyEmailCode: {
-      type: String,
-      required: [true, "Verify Code is required"],
-    },
-    verifyEmailCodeExpiry: {
-      type: Date,
-      required: [true, "Verify Code Expiry is required"],
-    },
+    forgetPasswordToken: { type: String, default: null },
+    forgetPasswordTokenExpiry: { type: Date, default: null },
+    verifyEmailCode: { type: String, required: [true, "Verify Code is required"] },
+    verifyEmailCodeExpiry: { type: Date, required: [true, "Verify Code Expiry is required"] },
     reputation: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now },
     profileImg: { type: String, default: "" },
   },
   {
     timestamps: true,
-  },
+  }
 );
 
-const User: Model<User> =
-  mongoose.models.users || mongoose.model<User>("users", UserSchema);
+// Ensure the model name matches the `ref` value used in other schemas
+const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
 
 export default User;

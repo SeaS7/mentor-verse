@@ -2,12 +2,9 @@ import { NextResponse, NextRequest } from "next/server";
 import dbConnect from "@/lib/dbConfig";
 import Vote from "@/models/vote.model";
 
-// Helper function to create error response
-function createErrorResponse(message: string, status = 400) {
-  return NextResponse.json({ success: false, message }, { status });
-}
 
 // Handle GET request to check vote status
+
 export async function GET(request: NextRequest) {
   await dbConnect();
 
@@ -15,8 +12,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
     const typeId = searchParams.get("typeId");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const status = searchParams.get("status"); // Optional status filter
 
+    // Validate required parameters
     if (!type || !typeId) {
       return NextResponse.json(
         { success: false, message: "Type and Type ID are required" },
@@ -24,23 +22,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const votes = await Vote.find({ type, typeId })
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    // Build query object
+    const query: any = { type, typeId };
+    if (status) {
+      query.voteStatus = status; // Filter by voteStatus if provided
+    }
+
+    // Get the count of votes
+    const voteCount = await Vote.countDocuments(query);
 
     return NextResponse.json(
-      { success: true, data: votes },
+      { success: true, count: voteCount },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error fetching votes:", error);
+    console.error("Error fetching vote count:", error);
     return NextResponse.json(
-      { success: false, message: "Error fetching votes" },
+      { success: false, message: "Error fetching vote count" },
       { status: 500 }
     );
   }
 }
-// Handle POST request for voting
+
+
 export async function POST(request: NextRequest) {
   await dbConnect();
 
@@ -48,33 +52,37 @@ export async function POST(request: NextRequest) {
     const { votedById, voteStatus, type, typeId } = await request.json();
 
     if (!votedById || !voteStatus || !type || !typeId) {
-      return createErrorResponse("Missing required fields", 400);
+      return NextResponse.json(
+        { success: false, message: "Missing required fields" },
+        { status: 400 }
+      );
     }
+
+    console.log("Processing vote:", { votedById, voteStatus, type, typeId });
 
     const existingVote = await Vote.findOne({ typeId, votedById, type });
 
     if (existingVote) {
       if (existingVote.voteStatus === voteStatus) {
+        // If the vote status is the same, remove the vote
         await Vote.findByIdAndDelete(existingVote._id);
+
+        const upvotes = await Vote.countDocuments({ typeId, type, voteStatus: "upvoted" });
+        const downvotes = await Vote.countDocuments({ typeId, type, voteStatus: "downvoted" });
+
         return NextResponse.json({
           success: true,
           message: "Vote removed",
-          voteResult:
-            voteStatus === "upvoted"
-              ? existingVote.voteResult - 1
-              : existingVote.voteResult + 1,
+          voteResult: upvotes - downvotes,
         });
       }
 
+      // Update the existing vote
       existingVote.voteStatus = voteStatus;
       await existingVote.save();
     } else {
-      await Vote.create({
-        type,
-        typeId,
-        votedById,
-        voteStatus,
-      });
+      // Create a new vote
+      await Vote.create({ type, typeId, votedById, voteStatus });
     }
 
     const upvotes = await Vote.countDocuments({ typeId, type, voteStatus: "upvoted" });
@@ -86,8 +94,12 @@ export async function POST(request: NextRequest) {
       vote: { votedById, voteStatus, type, typeId },
       voteResult: upvotes - downvotes,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error processing vote:", error);
-    return createErrorResponse("Failed to process vote", 500);
+    return NextResponse.json(
+      { success: false, message: "Failed to process vote", error: error.message },
+      { status: 500 }
+    );
   }
 }
+

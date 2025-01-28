@@ -17,7 +17,6 @@ export async function POST(request: Request) {
     if (!content || !authorId || !type || !typeId) {
       return createErrorResponse("All fields are required", 400);
     }
-
     const newComment = await Comment.create({
       content,
       authorId,
@@ -52,7 +51,6 @@ export async function DELETE(request: Request) {
     if (!deletedComment) {
       return createErrorResponse("Comment not found", 404);
     }
-
     return NextResponse.json({ success: true, message: "Comment deleted" });
   } catch (error) {
     console.error("Error deleting comment:", error);
@@ -68,7 +66,7 @@ export async function GET(request: Request) {
     const type = searchParams.get("type");
     const typeId = searchParams.get("typeId");
     const limit = parseInt(searchParams.get("limit") || "10");
-
+    console.log("comment", type, typeId);
     if (!type || !typeId) {
       return NextResponse.json(
         { success: false, message: "Type and Type ID are required" },
@@ -79,11 +77,9 @@ export async function GET(request: Request) {
     const comment = await Comment.find({ type, typeId })
       .limit(limit)
       .sort({ createdAt: -1 });
+    console.log("comment", comment);
 
-    return NextResponse.json(
-      { success: true, data: comment },
-      { status: 200 }
-    );
+    return NextResponse.json({ success: true, data: comment }, { status: 200 });
   } catch (error) {
     console.error("Error fetching comments:", error);
     return NextResponse.json(

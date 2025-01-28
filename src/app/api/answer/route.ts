@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
     if (!questionId || !content || !authorId) {
       return createErrorResponse("All fields are required", 400);
     }
+    console.log("content",content);
 
     const newAnswer = await Answer.create({
       questionId,

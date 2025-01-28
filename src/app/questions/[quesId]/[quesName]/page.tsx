@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation"; // For dynamically unwrapping params
+import { useParams } from "next/navigation";
 import Answers from "@/components/Answers";
 import Comments from "@/components/Comments";
 import { MarkdownPreview } from "@/components/RTE";
@@ -63,6 +63,9 @@ const Page = () => {
   if (!question) {
     return <div className="text-center mt-10 text-lg">Loading question...</div>;
   }
+
+
+  
 
   return (
     <TracingBeam className="container pl-6">

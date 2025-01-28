@@ -32,13 +32,13 @@ const VoteButtons = ({
 
   useEffect(() => {
     const fetchVoteStatus = async () => {
-      if (session?.user?.id) {
+      if (session?.user?._id) {
         try {
-          const response = await axios.get(`/api/votes`, {
+          const response = await axios.get(`/api/users/user-vote`, {
             params: {
               type,
               typeId: id,
-              votedById: session.user.id,
+              votedById: session.user._id,
             },
           });
 
@@ -62,7 +62,7 @@ const VoteButtons = ({
 
     try {
       const response = await axios.post(`/api/votes`, {
-        votedById: session.user.id,
+        votedById: session.user._id,
         voteStatus: newVoteStatus,
         type,
         typeId: id,

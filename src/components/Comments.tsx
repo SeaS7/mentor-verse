@@ -20,7 +20,7 @@ const Comments = ({
   typeId: string;
   className?: string;
 }) => {
-  const [comments, setComments] = useState(initialComments);
+  const [comments, setComments] = useState(initialComments || []); // Ensure valid default value
   const [newComment, setNewComment] = useState("");
   const { data: session } = useSession();
   const router = useRouter();
@@ -36,7 +36,7 @@ const Comments = ({
     try {
       const response = await axios.post("/api/comments", {
         content: newComment,
-        authorId: session.user.id,
+        authorId: session.user._id,
         type,
         typeId,
       });
@@ -66,35 +66,39 @@ const Comments = ({
 
   return (
     <div className={cn("flex flex-col gap-2 pl-4", className)}>
-      {comments.map((comment) => (
-        <React.Fragment key={comment._id}>
-          <hr className="border-white/40" />
-          <div className="flex gap-2">
-            <p className="text-sm">
-              {comment.content} -{" "}
-              <a
-                href={`/users/${comment.authorId}/${slugify(
-                  comment.author?.name || "Anonymous"
-                )}`}
-                className="text-orange-500 hover:text-orange-600"
-              >
-                {comment.author?.name || "Anonymous"}
-              </a>{" "}
-              <span className="opacity-60">
-                {convertDateToRelativeTime(new Date(comment.createdAt))}
-              </span>
-            </p>
-            {session?.user?.id === comment.authorId && (
-              <button
-                onClick={() => deleteComment(comment._id)}
-                className="shrink-0 text-red-500 hover:text-red-600"
-              >
-                <IconTrash className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </React.Fragment>
-      ))}
+      {comments?.length > 0 ? (
+        comments.map((comment) => (
+          <React.Fragment key={comment._id}>
+            <hr className="border-white/40" />
+            <div className="flex gap-2">
+              <p className="text-sm">
+                {comment.content} -{" "}
+                <a
+                  href={`/users/${comment.authorId}/${slugify(
+                    comment.author?.name || "Anonymous"
+                  )}`}
+                  className="text-orange-500 hover:text-orange-600"
+                >
+                  {comment.author?.name || "Anonymous"}
+                </a>{" "}
+                <span className="opacity-60">
+                  {convertDateToRelativeTime(new Date(comment.createdAt))}
+                </span>
+              </p>
+              {session?.user?._id === comment.authorId && (
+                <button
+                  onClick={() => deleteComment(comment._id)}
+                  className="shrink-0 text-red-500 hover:text-red-600"
+                >
+                  <IconTrash className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </React.Fragment>
+        ))
+      ) : (
+        <p className="text-sm opacity-60">No comments yet.</p>
+      )}
       <hr className="border-white/40" />
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <textarea

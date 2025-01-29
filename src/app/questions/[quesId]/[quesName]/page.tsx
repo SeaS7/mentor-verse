@@ -61,25 +61,38 @@ const Page = () => {
   }, [quesId]);
 
   if (!question) {
-    return <div className="text-center mt-10 text-lg">Loading question...</div>;
+    return (
+      <div>
+        <div className="relative flex justify-center items-center mt-40">
+          <div className="absolute animate-spin rounded-full h-32 w-32 border-t-4 border-b-4 border-black dark:border-white"></div>
+          <img
+            src="https://www.svgrepo.com/show/509001/avatar-thinking-9.svg"
+            className="rounded-full h-28 w-28"
+          />
+        </div>
+      </div>
+    );
   }
-
-
-  
 
   return (
     <TracingBeam className="container pl-6">
       <div className="relative mx-auto px-4 pb-20 pt-36">
         <div className="flex">
           <div className="w-full">
-            <h1 className="mb-1 text-3xl font-bold">{question.title}</h1>
+            <h1 className="mb-1 text-3xl font-bold">
+              {question?.title || "Untitled Question"}
+            </h1>
             <div className="flex gap-4 text-sm">
               <span>
-                Asked {convertDateToRelativeTime(new Date(question.createdAt))}
+                Asked{" "}
+                {convertDateToRelativeTime(
+                  new Date(question?.createdAt || Date.now())
+                )}
               </span>
-              <span>Answers {answers.length || 0}</span>
+              <span>Answers {answers?.length || 0}</span>
               <span>
-                Votes {isNaN(upvotes - downvotes) ? "0" : upvotes - downvotes}
+                Votes{" "}
+                {Number.isNaN(upvotes - downvotes) ? "0" : upvotes - downvotes}
               </span>
             </div>
           </div>
@@ -91,42 +104,48 @@ const Page = () => {
             </ShimmerButton>
           </Link>
         </div>
+
         <hr className="my-4 border-white/40" />
+
         <div className="flex gap-4">
           <div className="flex shrink-0 flex-col items-center gap-4">
             <VoteButtons
               type="question"
-              id={question._id}
-              upvotesCount={upvotes}
-              downvotesCount={downvotes}
+              id={question?._id}
+              upvotesCount={upvotes || 0}
+              downvotesCount={downvotes || 0}
             />
-            {session?.user?._id === question.authorId && (
+            {session?.user?._id === question?.authorId?._id && (
               <>
                 <EditQuestion
-                  questionId={question._id}
-                  questionTitle={question.title}
-                  authorId={question.authorId}
+                  questionId={question?._id}
+                  questionTitle={question?.title}
+                  authorId={question?.authorId?._id}
                 />
                 <DeleteQuestion
-                  questionId={question._id}
-                  authorId={question.authorId}
+                  questionId={question?._id}
+                  authorId={question?.authorId?._id}
                 />
               </>
             )}
           </div>
           <div className="w-full overflow-auto">
             <div className="rounded-xl p-4">
-              <MarkdownPreview source={question.content} />
+              <MarkdownPreview
+                source={question?.content || "No content available"}
+              />
             </div>
-            {question.attachmentId && (
+
+            {question?.attachmentId && (
               <img
                 src={question.attachmentId}
-                alt={question.title}
+                alt={question?.title || "Question Attachment"}
                 className="mt-3 rounded-lg"
               />
             )}
+
             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-              {question.tags.map((tag: string) => (
+              {(question?.tags || []).map((tag: string) => (
                 <Link
                   key={tag}
                   href={`/questions?tag=${tag}`}
@@ -136,36 +155,41 @@ const Page = () => {
                 </Link>
               ))}
             </div>
+
+            {/* Author Details */}
             <div className="mt-4 flex items-center justify-end gap-1">
               <picture>
                 <img
-                  src={avatars || "/public/defaultUser.png"}
-                  alt={question?.author?.name || "Unknown Author"}
-                  className="rounded-lg"
+                  src={question?.authorId?.profileImg || "/default-avatar.png"}
+                  alt={question?.authorId?.username || "Unknown Author"}
+                  className="rounded-lg w-10 h-10"
                 />
               </picture>
               <div className="block leading-tight">
                 <Link
-                  href={`/users/${question.authorId}/${slugify(question?.author?.name || "")}`}
+                  href={`/users/${question?.authorId?._id || "unknown"}/${slugify(question?.authorId?.username || "anonymous")}`}
                   className="text-orange-500 hover:text-orange-600"
                 >
-                  {question?.author?.name || "Anonymous"}
+                  {question?.authorId?.username || "Anonymous"}
                 </Link>
                 <p>
-                  <strong>{question?.author?.reputation || 0}</strong>
+                  <strong>{question?.authorId?.reputation || 0}</strong>
                 </p>
               </div>
             </div>
+
             <Comments
               initialComments={comments}
               type="question"
-              typeId={question._id}
+              typeId={question?._id}
               className="mt-4"
             />
+
             <hr className="my-4 border-white/40" />
           </div>
         </div>
-        <Answers initialAnswers={answers} questionId={question._id} />
+
+        <Answers initialAnswers={answers} questionId={question?._id} />
       </div>
     </TracingBeam>
   );

@@ -105,7 +105,7 @@ const QuestionForm = ({ question }: { question?: any }) => {
       const response = question
         ? await updateQuestion()
         : await createQuestion();
-      router.push(`/questions/${response._id}/${slugify(formData.title)}`);
+      router.push(`/questions/${response.data._id}/${slugify(formData.title)}`);
     } catch (error: any) {
       setError(error.response?.data?.message || "Error submitting question");
     }

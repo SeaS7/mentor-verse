@@ -11,3 +11,4 @@ export default function AuthProvider({
     <SessionProvider>{children}</SessionProvider>
   );
 }
+

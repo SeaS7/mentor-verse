@@ -30,6 +30,15 @@ const Notification = ({ user }: { user: any }) => {
             <span className="text-xs text-gray-500">{user.reputation}</span>
           </p>
         </div>
+        <div className="ml-auto">
+          <picture>
+            <img
+              src={user.profileImg || "/default-avatar.png"}
+              alt={user.username}
+              className="rounded-lg w-12 h-12"
+            />
+          </picture>
+        </div>
       </div>
     </figure>
   );
@@ -74,11 +83,13 @@ export default function TopContributers() {
       {loading ? (
         <SkeletonLoader />
       ) : (
-        <AnimatedList>
-          {topUsers.map((user) => (
-            <Notification user={user} key={user._id} />
-          ))}
-        </AnimatedList>
+        <div>
+          <AnimatedList>
+            {topUsers.map((user) => (
+              <Notification user={user} key={user._id} />
+            ))}
+          </AnimatedList>
+        </div>
       )}
     </div>
   );

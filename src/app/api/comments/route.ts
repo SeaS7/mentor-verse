@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     const type = searchParams.get("type");
     const typeId = searchParams.get("typeId");
     const limit = parseInt(searchParams.get("limit") || "10");
-    console.log("comment", type, typeId);
+ 
     if (!type || !typeId) {
       return NextResponse.json(
         { success: false, message: "Type and Type ID are required" },
@@ -77,7 +77,7 @@ export async function GET(request: Request) {
     const comment = await Comment.find({ type, typeId })
       .limit(limit)
       .sort({ createdAt: -1 });
-    console.log("comment", comment);
+
 
     return NextResponse.json({ success: true, data: comment }, { status: 200 });
   } catch (error) {

@@ -17,34 +17,36 @@ const Answer = ({
   answer: any;
   onDelete: (id: string) => void;
 }) => {
-  const [comments, setComments] = useState<any[]>([]); // Initially an empty array to handle loading
+  const [comments, setComments] = useState<any[]>([]);
   const [votes, setVotes] = useState({ upvotes: 0, downvotes: 0 });
-  const [loading, setLoading] = useState(true); // Loading state for API calls
+  const [loading, setLoading] = useState(true);
+  const [commentsLoading, setCommentsLoading] = useState(true);
   const { data: session } = useSession();
 
   // Fetch comments and votes for this answer
   useEffect(() => {
     const fetchCommentsAndVotes = async () => {
       try {
-        const [commentsRes, upvotesRes, downvotesRes] = await Promise.all([
+        const [commentsRes, upvotesRes, downvotesRes] = await Promise.allSettled([
           axios.get(`/api/comments?type=answer&typeId=${answer._id}`),
-          axios.get(`/api/votes`, {
-            params: { type: "answer", typeId: answer._id, status: "upvoted" },
-          }),
-          axios.get(`/api/votes`, {
-            params: { type: "answer", typeId: answer._id, status: "downvoted" },
-          }),
+          axios.get(`/api/votes`, { params: { type: "answer", typeId: answer._id, status: "upvoted" } }),
+          axios.get(`/api/votes`, { params: { type: "answer", typeId: answer._id, status: "downvoted" } }),
         ]);
 
-        setComments(commentsRes.data.data || []);
-        setVotes({
-          upvotes: upvotesRes.data.count || 0,
-          downvotes: downvotesRes.data.count || 0,
-        });
+        if (commentsRes.status === "fulfilled") {
+          setComments(commentsRes.value.data.data || []);
+        }
+        if (upvotesRes.status === "fulfilled" && downvotesRes.status === "fulfilled") {
+          setVotes({
+            upvotes: upvotesRes.value.data.count || 0,
+            downvotes: downvotesRes.value.data.count || 0,
+          });
+        }
       } catch (error) {
         console.error(`Error fetching data for answer ${answer._id}:`, error);
       } finally {
-        setLoading(false); // Set loading to false after API calls complete
+        setLoading(false);
+        setCommentsLoading(false);
       }
     };
 
@@ -62,9 +64,9 @@ const Answer = ({
             downvotesCount={votes.downvotes}
           />
         ) : (
-          <div>Loading votes...</div> // Placeholder for votes
+          <div className="animate-pulse w-12 h-5 bg-gray-200 rounded-md" />
         )}
-        {session?.user?.id === answer.authorId && (
+        {session?.user?._id === answer.authorId?._id && (
           <button
             className="flex h-10 w-10 items-center justify-center rounded-full border border-red-500 p-1 text-red-500 duration-200 hover:bg-red-500/10"
             onClick={() => onDelete(answer._id)}
@@ -80,24 +82,24 @@ const Answer = ({
         <div className="mt-4 flex items-center justify-end gap-1">
           <picture>
             <img
-              src={answer.author?.image || "/default-avatar.png"}
-              alt={answer.author?.name || "User"}
+              src={answer.authorId?.profileImg || "/default-avatar.png"}
+              alt={answer.authorId?.username || "User"}
               className="rounded-lg w-9 h-9"
             />
           </picture>
           <div className="block leading-tight">
             <Link
-              href={`/users/${answer.authorId}/${slugify(answer.author?.name || "anonymous")}`}
+              href={`/users/${answer.authorId?._id || "unknown"}/${slugify(answer.authorId?.username || "anonymous")}`}
               className="text-orange-500 hover:text-orange-600"
             >
-              {answer.author?.name || "Anonymous"}
+              {answer.authorId?.username || "Anonymous"}
             </Link>
             <p>
-              <strong>{answer.author?.reputation || 0}</strong>
+              <strong>{answer.authorId?.reputation || 0}</strong>
             </p>
           </div>
         </div>
-        {!loading ? (
+        {!commentsLoading ? (
           <Comments
             initialComments={comments}
             className="mt-4"
@@ -105,7 +107,7 @@ const Answer = ({
             typeId={answer._id}
           />
         ) : (
-          <div>Loading comments...</div> // Placeholder for comments
+          <div className="animate-pulse w-full h-10 bg-gray-200 rounded-md" />
         )}
         <hr className="my-4 border-white/40" />
       </div>

@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import axios from "axios";
 import RTE from "./RTE";
 import Answer from "./AnswerCard";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const Answers = ({
   initialAnswers,
@@ -15,14 +17,21 @@ const Answers = ({
   const [answers, setAnswers] = useState(initialAnswers);
   const [newAnswer, setNewAnswer] = useState("");
 
+  const { data: session } = useSession();
+   const router = useRouter();
+
   // Handle submitting a new answer
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!session) {
+      router.push("/login");
+      return;
+    }
     try {
       const response = await axios.post("/api/answer", {
         questionId,
         content: newAnswer,
-        authorId: "CURRENT_USER_ID", // Replace with actual user ID
+        authorId: session?.user?._id, // Replace with actual user ID
       });
 
       setNewAnswer("");

@@ -58,8 +58,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("Processing vote:", { votedById, voteStatus, type, typeId });
-
     const existingVote = await Vote.findOne({ typeId, votedById, type });
 
     if (existingVote) {

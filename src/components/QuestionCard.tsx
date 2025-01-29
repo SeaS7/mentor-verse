@@ -4,7 +4,7 @@ import Link from "next/link";
 import slugify from "@/utils/slugify";
 import convertDateToRelativeTime from "@/utils/relativeTime";
 
-const QuestionCard = ({ ques }: { ques: any }) => {
+const QuestionCard = ({ ques, key }: { ques: any; key?: string }) => {
   const [height, setHeight] = React.useState(0);
   const ref = React.useRef<HTMLDivElement>(null);
 
@@ -17,6 +17,7 @@ const QuestionCard = ({ ques }: { ques: any }) => {
   return (
     <div
       ref={ref}
+      key={key || ques._id?.toString()} // Optional key here
       className="relative flex flex-col gap-4 overflow-hidden rounded-xl border bg-white p-4 shadow-md duration-200 hover:shadow-lg sm:flex-row 
             border-gray-200 dark:border-white/20 dark:bg-gray-900 dark:shadow-none dark:hover:shadow-md"
     >
@@ -27,7 +28,9 @@ const QuestionCard = ({ ques }: { ques: any }) => {
       </div>
       <div className="relative w-full">
         <Link
-          href={`/questions/${ques._id}/${slugify(ques.title)}`}
+          href={`/questions/${ques._id?.toString() || "unknown"}/${slugify(
+            ques.title || "untitled"
+          )}`}
           className="text-orange-500 duration-200 hover:text-orange-600"
         >
           <h2 className="text-xl font-semibold">{ques.title}</h2>
@@ -42,9 +45,17 @@ const QuestionCard = ({ ques }: { ques: any }) => {
               #{tag}
             </Link>
           ))}
+
           <div className="ml-auto flex items-center gap-1">
+            <picture>
+              <img
+                src={ques?.authorId?.profileImg || "/default-avatar.png"}
+                alt={ques?.authorId?.username || "Unknown Author"}
+                className="rounded-lg w-6 h-6"
+              />
+            </picture>
             <Link
-              href={`/users/${ques.authorId?._id || "unknown"}/${slugify(
+              href={`/users/${ques.authorId?._id?.toString() || "unknown"}/${slugify(
                 ques.authorId?.username || "anonymous"
               )}`}
               className="text-orange-500 hover:text-orange-600"

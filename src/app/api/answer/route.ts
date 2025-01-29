@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     if (!questionId || !content || !authorId) {
       return createErrorResponse("All fields are required", 400);
     }
-    console.log("content",content);
+
 
     const newAnswer = await Answer.create({
       questionId,
@@ -78,7 +78,9 @@ export async function GET(request: NextRequest) {
 
     const answers = await Answer.find({ questionId })
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .populate("authorId", "username profileImg") // Fetch username and reputation from User model
+      .lean();;
 
       console.log("answers",answers);
     return NextResponse.json(

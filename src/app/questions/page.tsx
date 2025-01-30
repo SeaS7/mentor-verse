@@ -10,8 +10,7 @@ import Pagination from "@/components/Pagination";
 import Search from "./Search";
 
 export default function Page() {
-  const searchParams = useSearchParams(); // ✅ Ensure searchParams is unwrapped properly
-
+  const searchParams = useSearchParams();
   const [questions, setQuestions] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -75,7 +74,7 @@ export default function Page() {
           ))
         ) : questions.length > 0 ? (
           questions.map((ques: any) => (
-            <QuestionCard key={ques._id.toString()} ques={ques} />
+            <QuestionCard key={ques._id.toString()}  ques={ques} />
           ))
         ) : (
           <p className="text-gray-500 col-span-full text-center">No questions found.</p>

@@ -69,7 +69,7 @@ const VoteButtons = ({
       });
 
       if (response.data.success) {
-        setVoteStatus(response.data.vote.voteStatus);
+        setVoteStatus(response.data.voteStatus);
         setVoteResult(response.data.voteResult);
       }
     } catch (error) {
@@ -90,7 +90,7 @@ const VoteButtons = ({
       >
         <IconCaretUpFilled />
       </button>
-      <span>{voteResult}</span>
+      <span>{voteResult || 0}</span>
       <button
         className={cn(
           "flex h-10 w-10 items-center justify-center rounded-full border p-1 transition-all hover:bg-white/10",

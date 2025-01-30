@@ -24,7 +24,7 @@ export default function Header() {
   if (status === "authenticated" && session?.user) {
     navItems.push({
       name: "Profile",
-      link: `/users/${session.user.id}/${slugify(session.user.name)}`,
+      link: `/users/${session.user._id}/${slugify(session.user.username)}`,
       icon: <IconMessage className="h-4 w-4 text-neutral-500 dark:text-white" />,
     });
   }

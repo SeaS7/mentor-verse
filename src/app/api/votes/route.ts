@@ -1,6 +1,8 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConfig";
 import Vote from "@/models/vote.model";
+import User from "@/models/user.model";
+import Notification from "@/models/notification.model";
 
 
 // Handle GET request to check vote status
@@ -45,6 +47,7 @@ export async function GET(request: NextRequest) {
 }
 
 
+
 export async function POST(request: NextRequest) {
   await dbConnect();
 
@@ -52,52 +55,69 @@ export async function POST(request: NextRequest) {
     const { votedById, voteStatus, type, typeId } = await request.json();
 
     if (!votedById || !voteStatus || !type || !typeId) {
-      return NextResponse.json(
-        { success: false, message: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "Missing fields" }, { status: 400 });
     }
 
-    const existingVote = await Vote.findOne({ typeId, votedById, type });
+    // Check if the vote already exists
+    let existingVote = await Vote.findOne({ typeId, votedById, type });
+
+    let voteResultChange = 0; // Track how the vote affects the result
 
     if (existingVote) {
       if (existingVote.voteStatus === voteStatus) {
-        // If the vote status is the same, remove the vote
+        // If the user clicks again on the same vote, remove it
         await Vote.findByIdAndDelete(existingVote._id);
-
-        const upvotes = await Vote.countDocuments({ typeId, type, voteStatus: "upvoted" });
-        const downvotes = await Vote.countDocuments({ typeId, type, voteStatus: "downvoted" });
-
-        return NextResponse.json({
-          success: true,
-          message: "Vote removed",
-          voteResult: upvotes - downvotes,
-        });
+        voteResultChange = voteStatus === "upvoted" ? -1 : 1;
+        existingVote = null;
+      } else {
+        // If the user switches vote (upvote <-> downvote)
+        voteResultChange = voteStatus === "upvoted" ? 2 : -2;
+        existingVote.voteStatus = voteStatus;
+        await existingVote.save();
       }
-
-      // Update the existing vote
-      existingVote.voteStatus = voteStatus;
-      await existingVote.save();
     } else {
-      // Create a new vote
+      // New vote
       await Vote.create({ type, typeId, votedById, voteStatus });
+      voteResultChange = voteStatus === "upvoted" ? 1 : -1;
     }
 
-    const upvotes = await Vote.countDocuments({ typeId, type, voteStatus: "upvoted" });
-    const downvotes = await Vote.countDocuments({ typeId, type, voteStatus: "downvoted" });
+    // Calculate total upvotes and downvotes
+    const totalUpvotes = await Vote.countDocuments({ type, typeId, voteStatus: "upvoted" });
+    const totalDownvotes = await Vote.countDocuments({ type, typeId, voteStatus: "downvoted" });
+    const voteResult = totalUpvotes - totalDownvotes;
+
+    // Find the post owner
+    const postOwner = await User.findById(votedById);
+
+    if (postOwner) {
+      // Create a notification
+      await Notification.create({
+        userId: postOwner._id,
+        type: "vote",
+        sourceId: typeId,
+        message: `Someone ${voteStatus} your post!`,
+        isRead: false,
+      });
+
+      // Update reputation
+      if (voteStatus === "upvoted") {
+        postOwner.reputation += 10;
+      } else {
+        postOwner.reputation -= 5;
+      }
+      await postOwner.save();
+    }
+    console.log(postOwner);
+    
 
     return NextResponse.json({
       success: true,
-      message: "Vote updated successfully",
-      vote: { votedById, voteStatus, type, typeId },
-      voteResult: upvotes - downvotes,
+      message: "Vote processed",
+      voteStatus: existingVote ? existingVote.voteStatus : null,
+      voteResult, // Return updated vote count
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error processing vote:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to process vote", error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Error processing vote" }, { status: 500 });
   }
 }
-

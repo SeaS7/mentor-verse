@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConfig";
 import Comment from "@/models/comment.model";
+import Notification from "@/models/notification.model";
 
 // Helper function to create error response
 function createErrorResponse(message: string, status = 400) {
@@ -8,29 +9,38 @@ function createErrorResponse(message: string, status = 400) {
 }
 
 // Create a new comment
-export async function POST(request: Request) {
+
+export async function POST(request: NextRequest) {
   await dbConnect();
 
   try {
     const { content, authorId, type, typeId } = await request.json();
 
     if (!content || !authorId || !type || !typeId) {
-      return createErrorResponse("All fields are required", 400);
+      return NextResponse.json(
+        { success: false, message: "Missing fields" },
+        { status: 400 }
+      );
     }
-    const newComment = await Comment.create({
-      content,
-      authorId,
-      type,
-      typeId,
+
+    const comment = await Comment.create({ content, authorId, type, typeId });
+
+    // Notify the post owner
+    await Notification.create({
+      userId: typeId, // Assuming typeId is the userId
+      type: "comment",
+      sourceId: comment._id,
+      message: "Someone commented on your post!",
+      isRead: false,
     });
 
-    return NextResponse.json(
-      { success: true, data: newComment },
-      { status: 201 }
-    );
+    return NextResponse.json({ success: true, data: comment });
   } catch (error) {
-    console.error("Error adding comment:", error);
-    return createErrorResponse("Error adding comment", 500);
+    console.error("Error creating comment:", error);
+    return NextResponse.json(
+      { success: false, message: "Error creating comment" },
+      { status: 500 }
+    );
   }
 }
 
@@ -66,7 +76,7 @@ export async function GET(request: Request) {
     const type = searchParams.get("type");
     const typeId = searchParams.get("typeId");
     const limit = parseInt(searchParams.get("limit") || "10");
- 
+
     if (!type || !typeId) {
       return NextResponse.json(
         { success: false, message: "Type and Type ID are required" },
@@ -77,7 +87,6 @@ export async function GET(request: Request) {
     const comment = await Comment.find({ type, typeId })
       .limit(limit)
       .sort({ createdAt: -1 });
-
 
     return NextResponse.json({ success: true, data: comment }, { status: 200 });
   } catch (error) {

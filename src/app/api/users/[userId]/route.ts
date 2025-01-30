@@ -4,13 +4,15 @@ import User from "@/models/user.model";
 import mongoose from "mongoose";
 
 // Handle GET request
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { userId: string } }) {
   await dbConnect();
 
-  const { id } = await params;
+  const { userId } = await params;
+  console.log(  "userId",userId);
+  
 
   // Validate user ID
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
     return NextResponse.json(
       { success: false, message: "Invalid user ID" },
       { status: 400 }
@@ -18,7 +20,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 
   try {
-    const user = await User.findById(id).select("username email role profileImg reputation");
+    const user = await User.findById(userId).select("username email role profileImg reputation");
+    console.log("user",user);
 
     if (!user) {
       return NextResponse.json(
@@ -27,7 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       );
     }
 
-    return NextResponse.json({ success: true, data: user }, { status: 200 });
+    return NextResponse.json({ success: true, user }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { success: false, message: "Server error", error: (error as Error).message },

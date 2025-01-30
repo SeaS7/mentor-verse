@@ -189,7 +189,7 @@ const Page = () => {
           </div>
         </div>
 
-        <Answers initialAnswers={answers} questionId={question?._id} />
+        <Answers initialAnswers={answers} questionAuthorId={question?.authorId?._id} questionId={question?._id} />
       </div>
     </TracingBeam>
   );

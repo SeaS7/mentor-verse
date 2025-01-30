@@ -1,37 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConfig";
 import Answer from "@/models/answer.model";
+import Question from "@/models/question.model";
+import Notification from "@/models/notification.model";
 
-// Helper function for error response
 function createErrorResponse(message: string, status = 400) {
   return NextResponse.json({ success: false, message }, { status });
 }
-
-// Create a new answer
 export async function POST(request: NextRequest) {
   await dbConnect();
 
   try {
     const { questionId, content, authorId } = await request.json();
 
+    // Validate request
     if (!questionId || !content || !authorId) {
-      return createErrorResponse("All fields are required", 400);
+      return createErrorResponse("Question ID, content, and authorId is required", 400);
     }
 
+    // Create the answer
+    const answer = await Answer.create({ questionId, content, authorId });
 
-    const newAnswer = await Answer.create({
-      questionId,
-      content,
-      authorId,
-    });
+    // Get the question to notify the author
+    const question = await Question.findById(questionId).populate("authorId");
 
-    return NextResponse.json(
-      { success: true, data: newAnswer },
-      { status: 201 }
-    );
+    if (question) {
+      await Notification.create({
+        userId: question.authorId._id, // Notify the question author
+        type: "answer",
+        sourceId: answer._id,
+        message: "Your question received a new answer!",
+        isRead: false,
+      });
+    }
+
+    return NextResponse.json({ success: true, data: answer });
   } catch (error) {
-    console.error("Error adding answer:", error);
-    return createErrorResponse("Error adding answer", 500);
+    console.error("Error creating answer:", error);
+    return NextResponse.json(
+      { success: false, message: "Error creating answer" },
+      { status: 500 }
+    );
   }
 }
 
@@ -60,7 +69,6 @@ export async function DELETE(request: Request) {
   }
 }
 
-
 export async function GET(request: NextRequest) {
   await dbConnect();
 
@@ -80,13 +88,10 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .sort({ createdAt: -1 })
       .populate("authorId", "username profileImg") // Fetch username and reputation from User model
-      .lean();;
+      .lean();
 
-      console.log("answers",answers);
-    return NextResponse.json(
-      { success: true, data: answers },
-      { status: 200 }
-    );
+    console.log("answers", answers);
+    return NextResponse.json({ success: true, data: answers }, { status: 200 });
   } catch (error) {
     console.error("Error fetching answers:", error);
     return NextResponse.json(

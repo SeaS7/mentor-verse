@@ -10,15 +10,17 @@ import { useRouter } from "next/navigation";
 const Answers = ({
   initialAnswers,
   questionId,
+  questionAuthorId,
 }: {
   initialAnswers: any[];
   questionId: string;
+  questionAuthorId: string;
 }) => {
   const [answers, setAnswers] = useState(initialAnswers);
   const [newAnswer, setNewAnswer] = useState("");
 
   const { data: session } = useSession();
-   const router = useRouter();
+  const router = useRouter();
 
   // Handle submitting a new answer
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -27,11 +29,12 @@ const Answers = ({
       router.push("/login");
       return;
     }
+
     try {
       const response = await axios.post("/api/answer", {
         questionId,
         content: newAnswer,
-        authorId: session?.user?._id, // Replace with actual user ID
+        authorId: session?.user?._id,
       });
 
       setNewAnswer("");
@@ -44,7 +47,7 @@ const Answers = ({
   // Handle deleting an answer
   const deleteAnswer = async (answerId: string) => {
     try {
-      await axios.delete(`/api/answers?id=${answerId}`);
+      await axios.delete(`/api/answer?id=${answerId}`);
       setAnswers(answers.filter((answer) => answer._id !== answerId));
     } catch (error: any) {
       console.error("Error deleting answer:", error);
@@ -55,7 +58,12 @@ const Answers = ({
     <>
       <h2 className="mb-4 text-xl">{answers.length} Answers</h2>
       {answers.map((answer) => (
-        <Answer key={answer._id} answer={answer} onDelete={deleteAnswer} />
+        <Answer
+          key={answer._id}
+          answer={answer}
+          onDelete={deleteAnswer}
+          questionAuthorId={questionAuthorId} // Pass question author's ID for acceptance
+        />
       ))}
       <hr className="my-4 border-white/40" />
       <form onSubmit={handleSubmit} className="space-y-2">

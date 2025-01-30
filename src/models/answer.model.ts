@@ -7,6 +7,7 @@ export interface IAnswer extends Document {
   upvotes: number;
   downvotes: number;
   createdAt: Date;
+  isAccepted: boolean;
 }
 
 const AnswerSchema: Schema = new Schema<IAnswer>(
@@ -34,10 +35,12 @@ const AnswerSchema: Schema = new Schema<IAnswer>(
       type: Number,
       default: 0,
     },
+    isAccepted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-const Answer = mongoose.models.Answer || mongoose.model<IAnswer>("Answer", AnswerSchema);
+const Answer =
+  mongoose.models.Answer || mongoose.model<IAnswer>("Answer", AnswerSchema);
 
 export default Answer;

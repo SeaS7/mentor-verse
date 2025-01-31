@@ -4,8 +4,6 @@ export interface IAnswer extends Document {
   content: string;
   authorId: mongoose.Types.ObjectId;
   questionId: mongoose.Types.ObjectId;
-  upvotes: number;
-  downvotes: number;
   createdAt: Date;
   isAccepted: boolean;
 }
@@ -26,14 +24,6 @@ const AnswerSchema: Schema = new Schema<IAnswer>(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "Question",
-    },
-    upvotes: {
-      type: Number,
-      default: 0,
-    },
-    downvotes: {
-      type: Number,
-      default: 0,
     },
     isAccepted: { type: Boolean, default: false },
   },

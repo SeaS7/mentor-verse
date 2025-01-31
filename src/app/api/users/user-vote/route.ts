@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     // Find the vote by user and resource
     const vote = await Vote.findOne({ type, typeId, votedById });
-    console.log("vote", vote);
+
 
     if (!vote) {
       return NextResponse.json(
@@ -45,7 +45,6 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error fetching vote status:", error);
     return NextResponse.json(
       { success: false, message: "Error fetching vote status" },
       { status: 500 }

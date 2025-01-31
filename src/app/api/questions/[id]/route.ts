@@ -13,7 +13,7 @@ export async function GET(request: NextRequest, context: { params: { id: string 
     }
 
     const question = await Question.findById(id)
-      .populate("authorId", "username profileImg")
+      .populate("authorId", "username profileImg reputation")
       .lean();
 
     if (!question) {

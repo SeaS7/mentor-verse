@@ -27,7 +27,6 @@ const Page = () => {
   const [upvotes, setUpvotes] = useState(0);
   const [downvotes, setDownvotes] = useState(0);
   const [comments, setComments] = useState([]);
-  const [avatars, setAvatars] = React.useState<string | null>(null);
 
   useEffect(() => {
     if (!quesId) return;

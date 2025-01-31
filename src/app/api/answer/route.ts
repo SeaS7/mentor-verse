@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConfig";
 import Answer from "@/models/answer.model";
 import Question from "@/models/question.model";
 import Notification from "@/models/notification.model";
+import Vote from "@/models/vote.model";
 
 function createErrorResponse(message: string, status = 400) {
   return NextResponse.json({ success: false, message }, { status });
@@ -87,11 +88,26 @@ export async function GET(request: NextRequest) {
     const answers = await Answer.find({ questionId })
       .limit(limit)
       .sort({ createdAt: -1 })
-      .populate("authorId", "username profileImg") // Fetch username and reputation from User model
+      .populate("authorId", "username profileImg reputation") // Fetch username and reputation from User model
       .lean();
 
-    console.log("answers", answers);
-    return NextResponse.json({ success: true, data: answers }, { status: 200 });
+      const answersStats = await Promise.all(
+        answers.map(async (answer) => {
+          const [totalUpvotes, totalDownvotes] = await Promise.all([
+            Vote.countDocuments({ type: "answer", typeId: answer._id, voteStatus: "upvoted" }), // Count upvotes
+            Vote.countDocuments({ type: "answer", typeId: answer._id, voteStatus: "downvoted" }), // Count downvotes
+          ]);
+
+          return {
+            ...answer,
+            totalUpvotes,
+            totalDownvotes, // Calculate total votes
+          };
+        })
+      );
+
+    console.log("answers", answersStats);
+    return NextResponse.json({ success: true, data: answersStats }, { status: 200 });
   } catch (error) {
     console.error("Error fetching answers:", error);
     return NextResponse.json(

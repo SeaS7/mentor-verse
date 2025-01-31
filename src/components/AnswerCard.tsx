@@ -48,8 +48,8 @@ const Answer = ({
         <VoteButtons
           type="answer"
           id={answer._id}
-          upvotesCount={answer.upvotes}
-          downvotesCount={answer.downvotes}
+          upvotesCount={answer.totalUpvotes}
+          downvotesCount={answer.totalDownvotes}
         />
 
         {/* Accept Answer Button (Visible to Question Author) */}

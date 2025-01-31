@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: "Question ID is required" }, { status: 400 });
     }
 
-    const answers = await Answer.find({ questionId }).populate("authorId", "username profileImg");
+    const answers = await Answer.find({ questionId }).populate("authorId", "username profileImg reputation").lean();
 
     return NextResponse.json({ success: true, data: answers });
   } catch (error) {

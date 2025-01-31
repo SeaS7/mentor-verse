@@ -38,7 +38,6 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error fetching vote count:", error);
     return NextResponse.json(
       { success: false, message: "Error fetching vote count" },
       { status: 500 }
@@ -107,7 +106,7 @@ export async function POST(request: NextRequest) {
       }
       await postOwner.save();
     }
-    console.log(postOwner);
+
     
 
     return NextResponse.json({

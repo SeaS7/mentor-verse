@@ -1,20 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import convertDateToRelativeTime from "@/utils/relativeTime";
 import EditButton from "./EditButton";
 import Navbar from "./Navbar";
-import { IconClockFilled, IconUserFilled } from "@tabler/icons-react";
+import { IconClockFilled, IconUserFilled, IconCamera, IconLoader } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useSession();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false); // ✅ Track upload status
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Extract userId safely
-  const userId =  session?.user?._id;
+  const userId = session?.user?._id;
 
   useEffect(() => {
     if (status === "loading") return;
@@ -32,10 +33,41 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     };
 
     fetchUser();
-  }, [userId, status]); 
+  }, [userId, status]);
+
+  // Handle File Selection
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) return;
+    const file = event.target.files[0];
+
+    setUploading(true); // ✅ Start loading state
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("userId", userId);
+
+      const response = await axios.post("/api/users/profile-image", formData);
+      if (response.data.success) {
+        setUser((prevUser: any) => ({ ...prevUser, profileImg: response.data.profileImg }));
+      }
+    } catch (error) {
+      console.error("Error updating profile image:", error);
+    } finally {
+      setUploading(false); // ✅ End loading state
+    }
+  };
 
   if (loading) {
-    return <p className="text-center text-gray-500">Loading profile...</p>;
+    return (
+      <div className="relative flex justify-center items-center mt-40">
+        <div className="absolute animate-spin rounded-full h-32 w-32 border-t-4 border-b-4 border-black dark:border-white"></div>
+        <img
+          src="https://www.svgrepo.com/show/509001/avatar-thinking-9.svg"
+          className="rounded-full h-28 w-28"
+        />
+      </div>
+    );
   }
 
   if (!user) {
@@ -45,15 +77,33 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="container mx-auto space-y-4 px-4 pb-20 pt-32">
       <div className="flex flex-col gap-4 sm:flex-row">
-        {/* User Profile Picture */}
-        <div className="w-40 shrink-0">
-          <picture className="block w-full">
+        {/* Profile Picture with Edit Button */}
+        <div className="relative w-40 shrink-0">
+          <div className="relative">
             <img
               src={user.profileImg || "/default-avatar.png"}
               alt={user.username || "User"}
-              className="h-full w-full rounded-xl object-cover"
+              className="h-40 w-40 rounded-full object-cover"
             />
-          </picture>
+            
+            {/* Loading Overlay */}
+            {uploading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                <IconLoader className="animate-spin text-white" size={40} />
+              </div>
+            )}
+
+            {/* Upload Button */}
+            <button
+              onClick={() => !uploading && fileInputRef.current?.click()}
+              className="absolute bottom-2 right-2 flex items-center justify-center w-10 h-10 bg-gray-800 text-white rounded-full shadow-md"
+              disabled={uploading}
+            >
+              <IconCamera size={20} />
+            </button>
+
+            <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleFileChange} />
+          </div>
         </div>
 
         {/* User Info */}

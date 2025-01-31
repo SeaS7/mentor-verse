@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     const questions = await Question.find({})
       .sort({ createdAt: -1 })
       .limit(limit)
-      .populate("authorId", "username reputation") // Fetch username and reputation from User model
+      .populate("authorId", "username reputation profileImg") // Fetch username and reputation from User model
       .lean();
 
     if (!questions || questions.length === 0) {
@@ -135,6 +135,8 @@ export async function GET(request: NextRequest) {
         };
       })
     );
+    console.log("questionStats", questionStats);
+
 
     return NextResponse.json({ success: true, data: questionStats }, { status: 200 });
   } catch (error) {

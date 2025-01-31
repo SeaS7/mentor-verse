@@ -1,69 +1,62 @@
-import Pagination from "@/components/Pagination";
+"use client";
+
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useParams, useSearchParams } from "next/navigation";
 import QuestionCard from "@/components/QuestionCard";
-import { answerCollection, db, questionCollection, voteCollection } from "@/models/name";
-import { databases, users } from "@/models/server/config";
-import { UserPrefs } from "@/store/Auth";
-import { Query } from "node-appwrite";
-import React from "react";
+import Pagination from "@/components/Pagination";
 
-const Page = async ({
-    params,
-    searchParams,
-}: {
-    params: { userId: string; userSlug: string };
-    searchParams: { page?: string };
-}) => {
-    searchParams.page ||= "1";
+export default function UserQuestions() {
+  const { userId } = useParams();
+  const searchParams = useSearchParams();
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = 25;
 
-    const queries = [
-        Query.equal("authorId", params.userId),
-        Query.offset((+searchParams.page - 1) * 25),
-        Query.limit(25),
-    ];
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`/api/questions/user/${userId}`, {
+          params: { page, limit },
+        });
+        setQuestions(response.data.data);
+        setTotalQuestions(response.data.total);
+      } catch (error) {
+        console.error("Error fetching questions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    const questions = await databases.listDocuments(db, questionCollection, queries);
+    fetchQuestions();
+  }, [userId, page]);
 
-    questions.documents = await Promise.all(
-        questions.documents.map(async ques => {
-            const [author, answers, votes] = await Promise.all([
-                users.get<UserPrefs>(ques.authorId),
-                databases.listDocuments(db, answerCollection, [
-                    Query.equal("questionId", ques.$id),
-                    Query.limit(1), // for optimization
-                ]),
-                databases.listDocuments(db, voteCollection, [
-                    Query.equal("type", "question"),
-                    Query.equal("typeId", ques.$id),
-                    Query.limit(1), // for optimization
-                ]),
-            ]);
-
-            return {
-                ...ques,
-                totalAnswers: answers.total,
-                totalVotes: votes.total,
-                author: {
-                    $id: author.$id,
-                    reputation: author.prefs.reputation,
-                    name: author.name,
-                },
-            };
-        })
-    );
-
-    return (
-        <div className="px-4">
-            <div className="mb-4">
-                <p>{questions.total} questions</p>
-            </div>
-            <div className="mb-4 max-w-3xl space-y-6">
-                {questions.documents.map(ques => (
-                    <QuestionCard key={ques.$id} ques={ques} />
-                ))}
-            </div>
-            <Pagination total={questions.total} limit={25} />
-        </div>
-    );
-};
-
-export default Page;
+  return (
+    <div className="container mx-auto px-4 py-6">
+      <h1 className="text-3xl font-bold mb-6">User's Questions</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {loading ? (
+          // Skeleton Loader while fetching data
+          [...Array(8)].map((_, index) => (
+            <div
+              key={index}
+              className="h-32 animate-pulse bg-gray-200 dark:bg-gray-800 rounded-lg"
+            ></div>
+          ))
+        ) : (
+          <>
+            {questions.map((ques: any) => (
+              <QuestionCard key={ques._id} ques={ques} />
+            ))}
+          </>
+        )}
+      </div>
+      <div className="mt-10">
+        <Pagination total={totalQuestions} limit={25} />
+      </div>
+    </div>
+  );
+}

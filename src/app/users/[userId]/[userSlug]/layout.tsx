@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import convertDateToRelativeTime from "@/utils/relativeTime";
-import EditButton from "./EditButton";
 import Navbar from "./Navbar";
 import { IconClockFilled, IconUserFilled, IconCamera, IconLoader } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
@@ -126,7 +125,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
 
             <div className="shrink-0">
-              <EditButton />
             </div>
           </div>
         </div>

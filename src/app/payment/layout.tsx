@@ -1,7 +1,9 @@
 "use client";
 
+import Particles from "@/components/magicui/particles";
 import { BackgroundBeams } from "@/components/ui/background-beams";
 import { Toaster } from "@/components/ui/toaster";
+import AuthProvider from "@/context/AuthProvider";
 import React from "react";
 
 
@@ -10,11 +12,10 @@ const Layout = ({children}: {children: React.ReactNode}) => {
 
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center py-12">
-      <BackgroundBeams />
+    <AuthProvider>
       <div className="relative">{children}</div>
       <Toaster />
-    </div>
+    </AuthProvider>
   )
 }
 

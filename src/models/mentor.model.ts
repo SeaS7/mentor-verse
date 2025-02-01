@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 export interface IReview {
   user_id: mongoose.Schema.Types.ObjectId; // Reference to User model
   review_text: string;
-  rating: number; // 1 to 5 stars
+  rating: number;
   createdAt: Date;
 }
 

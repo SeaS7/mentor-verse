@@ -3,18 +3,18 @@ import dbConnect from "@/lib/dbConfig";
 import User from "@/models/user.model";
 import { MentorModel } from "@/models/mentor.model";
 
-// 📌 **GET Mentor by ID**
 export async function GET(
   req: NextRequest,
   { params }: { params: { mentorId: string } }
 ) {
   await dbConnect();
   console.log(params.mentorId);
-  
+
   try {
     const mentor = await MentorModel.findById(params.mentorId)
-      .populate("user_id", "username email profileImg reputation")
-      .select("expertise availability base_rate bio");
+      .populate("user_id", "username email profileImg reputation createdAt") // Populate mentor's user details
+      .populate("reviews.user_id", "username profileImg") // Populate user details inside reviews
+      .select("expertise availability base_rate bio rating reviews");
 
     if (!mentor) {
       return NextResponse.json(
@@ -25,6 +25,7 @@ export async function GET(
 
     return NextResponse.json({ success: true, data: mentor });
   } catch (error) {
+    console.error("Error fetching mentor:", error);
     return NextResponse.json(
       { success: false, message: "Server error" },
       { status: 500 }

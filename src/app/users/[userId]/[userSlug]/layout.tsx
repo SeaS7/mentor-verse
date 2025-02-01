@@ -5,20 +5,17 @@ import axios from "axios";
 import convertDateToRelativeTime from "@/utils/relativeTime";
 import Navbar from "./Navbar";
 import { IconClockFilled, IconUserFilled, IconCamera, IconLoader } from "@tabler/icons-react";
-import { useSession } from "next-auth/react";
+import { useParams } from "next/navigation";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  const { data: session, status } = useSession();
+  const { userId } = useParams() as { userId: string }; // ✅ Get userId from URL params
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false); // ✅ Track upload status
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const userId = session?.user?._id;
-
   useEffect(() => {
-    if (status === "loading") return;
-    if (!userId) return;
+    if (!userId) return; // Ensure userId exists
 
     const fetchUser = async () => {
       try {
@@ -32,15 +29,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     };
 
     fetchUser();
-  }, [userId, status]);
+  }, [userId]);
 
-  // Handle File Selection
+  // Handle File Selection & Upload
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0) return;
     const file = event.target.files[0];
 
-    setUploading(true); // ✅ Start loading state
-
+    setUploading(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -53,7 +49,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error("Error updating profile image:", error);
     } finally {
-      setUploading(false); // ✅ End loading state
+      setUploading(false);
     }
   };
 
@@ -84,7 +80,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               alt={user.username || "User"}
               className="h-40 w-40 rounded-full object-cover"
             />
-            
             {/* Loading Overlay */}
             {uploading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
@@ -122,9 +117,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <p className="flex items-center gap-1 text-sm text-gray-500">
                 ⭐ Reputation: <strong>{user.reputation || 0}</strong>
               </p>
-            </div>
-
-            <div className="shrink-0">
             </div>
           </div>
         </div>

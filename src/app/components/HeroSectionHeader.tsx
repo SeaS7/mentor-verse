@@ -52,7 +52,7 @@ const HeroSectionHeader = () => {
   }, [resolvedTheme]);
 
   return (
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto px-4 mb-20">
       <Particles
         className="fixed inset-0 h-full w-full"
         quantity={500}

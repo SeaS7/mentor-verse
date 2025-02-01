@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
@@ -9,7 +9,7 @@ import QuestionCard from "@/components/QuestionCard";
 import Pagination from "@/components/Pagination";
 import Search from "./Search";
 
-export default function Page() {
+function QuestionsList() {
   const searchParams = useSearchParams();
   const [questions, setQuestions] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
@@ -74,16 +74,23 @@ export default function Page() {
           ))
         ) : questions.length > 0 ? (
           questions.map((ques: any) => (
-            <QuestionCard key={ques._id.toString()}  ques={ques} />
+            <QuestionCard key={ques._id.toString()} ques={ques} />
           ))
         ) : (
           <p className="text-gray-500 col-span-full text-center">No questions found.</p>
         )}
       </div>
-        <div className="mt-10">
+      <div className="mt-10">
         <Pagination total={total} limit={limit} />
-        </div>
-      
+      </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<p>Loading questions...</p>}>
+      <QuestionsList />
+    </Suspense>
   );
 }

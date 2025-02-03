@@ -48,9 +48,15 @@ export default function UserQuestions() {
           ))
         ) : (
           <>
-            {questions.map((ques: any) => (
-              <QuestionCard key={ques._id} ques={ques} />
-            ))}
+            {questions.length > 0 ? (
+              questions.map((ques: any) => (
+                <QuestionCard key={ques._id} ques={ques} />
+              ))
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400">
+                No questions found.
+              </p>
+            )}
           </>
         )}
       </div>

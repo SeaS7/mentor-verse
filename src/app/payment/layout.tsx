@@ -1,7 +1,5 @@
 "use client";
 
-import Particles from "@/components/magicui/particles";
-import { BackgroundBeams } from "@/components/ui/background-beams";
 import { Toaster } from "@/components/ui/toaster";
 import AuthProvider from "@/context/AuthProvider";
 import React from "react";

@@ -31,13 +31,13 @@ export default function UserProfile() {
           axios.get(`/api/users/${finalUserId}`),
           axios.get(`/api/questions/user/${finalUserId}`),
           axios.get(`/api/answer/user/${finalUserId}`),
-          axios.get(`/api/notifications/${finalUserId}`),
+          axios.get(`/api/notifications?userId=${finalUserId}`),
         ]);
 
         setUser(userRes.data.user);
         setQuestions(questionRes.data.total);
         setAnswers(answerRes.data.total);
-        setNotifications(notificationsRes.data.data);
+        setNotifications(notificationsRes.data.notifications);
       } catch (error) {
         console.error("Error fetching user profile:", error);
       } finally {
@@ -50,8 +50,6 @@ export default function UserProfile() {
 
   return (
     <div className="container mx-auto px-4 pb-20">
-      
-
       {/* Stats Section */}
       <MagicContainer className="grid grid-cols-1 gap-4 md:grid-cols-3 mt-6">
   {[

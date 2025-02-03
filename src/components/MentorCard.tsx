@@ -62,7 +62,7 @@ const MentorCard = ({ mentor }: { mentor: any }) => {
         {/* Pricing & Profile Link */}
         <div className="mt-4 flex justify-between items-center">
           <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-            💰 ${mentor.base_rate || 0}/Month
+            💰 RS:{mentor.base_rate || 0}/Month
           </p>
           <Link href={`/mentors/${mentor._id}`} className="text-blue-500 dark:text-blue-400 hover:underline">
             View Profile →

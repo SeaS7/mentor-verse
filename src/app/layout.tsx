@@ -36,7 +36,7 @@ export default function RootLayout({
             <Header />
             {/* Theme and Notifications Wrapper */}
             <div className="flex items-center justify-end space-x-4 px-6 py-2">
-              <NotificationBell />
+              
               <ThemeSwitch />
             </div>
             {/* Content Wrapper */}

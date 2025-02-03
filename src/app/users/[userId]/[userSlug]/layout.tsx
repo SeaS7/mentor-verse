@@ -70,7 +70,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <div className="container mx-auto space-y-4 px-4 pb-20 pt-32">
+    <div className="container mx-auto space-y-4 px-4 pb-20 pt-10">
       <div className="flex flex-col gap-4 sm:flex-row">
         {/* Profile Picture with Edit Button */}
         <div className="relative w-40 shrink-0">

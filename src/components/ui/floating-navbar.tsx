@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import NotificationBell from "../NotificationBell";
 
 export const FloatingNav = ({
   navItems,
@@ -83,6 +84,8 @@ export const FloatingNav = ({
           </Link>
         ))}
         {status === "authenticated" && session?.user ? (
+        <>
+        <NotificationBell />
           <button
             onClick={() => {
               signOut();
@@ -92,6 +95,7 @@ export const FloatingNav = ({
             <span>Logout</span>
             <span className="absolute inset-x-0 -bottom-px mx-auto h-px w-1/2 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
           </button>
+          </>
         ) : (
           <>
             {router !== "/login" && (

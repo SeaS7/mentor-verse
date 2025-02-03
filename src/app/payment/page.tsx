@@ -5,6 +5,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { toast } from "@/components/ui/use-toast";
 
 if (!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY) {
   throw new Error("NEXT_PUBLIC_STRIPE_PUBLIC_KEY is not defined");
@@ -20,16 +21,30 @@ export default function PaymentPage() {
   // Get mentor object from URL
   const mentorString = searchParams.get("mentor");
   let mentor = null;
+
   try {
     mentor = mentorString ? JSON.parse(decodeURIComponent(mentorString)) : null;
   } catch (error) {
     console.error("Error parsing mentor object:", error);
+    toast({
+      title: "Invalid Mentor Data",
+      description: "There was an error processing mentor information.",
+      variant: "destructive",
+    });
   }
 
-  const amount = mentor?.base_rate ? parseFloat(mentor.base_rate) : 0;
+  const conversionRate = 0.0035; // Update this rate if needed
+  const baseRateUSD = mentor?.base_rate ? (mentor.base_rate * conversionRate).toFixed(2) : "0.00";
+  const amount = baseRateUSD ? parseFloat(baseRateUSD) : 0;
   const mentorId = mentor?._id || "";
 
   if (!mentor || amount <= 0 || !mentorId) {
+    toast({
+      title: "Payment Error",
+      description: "Invalid payment details. Please try again.",
+      variant: "destructive",
+    });
+
     return (
       <main className="max-w-6xl mx-auto p-10 text-center border m-10 rounded-md bg-gradient-to-tr from-blue-500 to-purple-500 text-white">
         <h2 className="text-2xl font-bold">Invalid payment details.</h2>

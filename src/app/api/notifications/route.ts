@@ -7,7 +7,6 @@ import mongoose from "mongoose";
 export async function GET(req: NextRequest) {
   await dbConnect();
   const userId = req.nextUrl.searchParams.get("userId");
-  console.log("Fetching notifications for user:", userId);
 
 
   if (!userId) {
@@ -16,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const notifications = await NotificationModel.find({ userId }).sort({ createdAt: -1 }).limit(10);
-    console.log("Notifications fetched:", notifications);
+
     return NextResponse.json({ success: true, notifications });
   } catch (error) {
     return NextResponse.json({ success: false, message: "Error fetching notifications" }, { status: 500 });

@@ -2,13 +2,18 @@ import { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   typescript: {
-    ignoreBuildErrors: true, // ✅ Ignore TypeScript errors during build
+    ignoreBuildErrors: true,
   },
   eslint: {
-    ignoreDuringBuilds: true, // ✅ Ignore ESLint errors during build
+    ignoreDuringBuilds: true,
   },
   images: {
-    domains: ["images.unsplash.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**", // Allows images from any domain
+      },
+    ],
   },
 };
 

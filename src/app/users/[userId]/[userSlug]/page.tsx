@@ -54,21 +54,28 @@ export default function UserProfile() {
 
       {/* Stats Section */}
       <MagicContainer className="grid grid-cols-1 gap-4 md:grid-cols-3 mt-6">
-        {[{ title: "Reputation", value: user?.reputation || 0 },
-          { title: "Questions Asked", value: questions },
-          { title: "Answers Given", value: answers }].map((stat, index) => (
-          <MagicCard key={index} className="flex flex-col items-center justify-center p-6 shadow-lg">
-            <h2 className="text-xl font-medium">{stat.title}</h2>
-            {loading ? (
-              <Skeleton className="h-10 w-20" />
-            ) : (
-              <p className="text-4xl font-bold text-gray-800 dark:text-gray-200">
-                <NumberTicker value={stat.value} />
-              </p>
-            )}
-          </MagicCard>
-        ))}
-      </MagicContainer>
+  {[
+    { title: "Reputation", value: user?.reputation ?? 0 },
+    { title: "Questions Asked", value: questions ?? 0 },
+    { title: "Answers Given", value: answers ?? 0 },
+  ].map((stat, index) => (
+    <MagicCard key={index} className="flex flex-col items-center justify-center p-6 shadow-lg">
+      <h2 className="text-xl font-medium">{stat.title}</h2>
+      {loading ? (
+        <Skeleton className="h-10 w-20" />
+      ) : (
+        <p className="text-4xl font-bold text-gray-800 dark:text-gray-200">
+          {stat.value === 0 ? (
+            <span>0</span> 
+          ) : (
+            <NumberTicker value={stat.value} />
+          )}
+        </p>
+      )}
+    </MagicCard>
+  ))}
+</MagicContainer>
+
 
       {/* Notifications */}
       <h2 className="mt-10 text-2xl font-bold">Recent Activity</h2>

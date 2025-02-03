@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { cn } from "@/lib/utils";
+import { toast } from "./ui/use-toast";
 
 const VoteButtons = ({
   type,
@@ -56,6 +57,11 @@ const VoteButtons = ({
 
   const handleVote = async (newVoteStatus: "upvoted" | "downvoted") => {
     if (!session) {
+      toast({
+        title: "Login Required",
+        description: "You must be logged in before you can vote.",
+        variant: "destructive",
+      });
       router.push("/login");
       return;
     }

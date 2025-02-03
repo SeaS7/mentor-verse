@@ -6,6 +6,7 @@ import RTE from "./RTE";
 import Answer from "./AnswerCard";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast"; // ✅ Import toast hook
 
 const Answers = ({
   initialAnswers,
@@ -21,12 +22,28 @@ const Answers = ({
 
   const { data: session } = useSession();
   const router = useRouter();
+  const { toast } = useToast(); // ✅ Use toast hook
 
   // Handle submitting a new answer
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!session) {
+      toast({
+        title: "Login Required",
+        description: "You must be logged in to post an answer.",
+        variant: "destructive",
+      });
       router.push("/login");
+      return;
+    }
+
+    if (!newAnswer.trim()) {
+      toast({
+        title: "Empty Answer",
+        description: "Your answer cannot be empty.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -37,10 +54,29 @@ const Answers = ({
         authorId: session?.user?._id,
       });
 
+      const newAnswerData = {
+        ...response.data.data,
+        authorId: {
+          _id: session.user._id,
+          username: session.user.username,
+          profileImg: session.user.profileImg,
+        },
+      };
+
       setNewAnswer("");
-      setAnswers([response.data.data, ...answers]);
+      setAnswers([newAnswerData, ...answers]);
+
+      toast({
+        title: "Answer Posted",
+        description: "Your answer was added successfully!",
+      });
     } catch (error: any) {
       console.error("Error posting answer:", error);
+      toast({
+        title: "Error",
+        description: "Failed to post the answer.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -49,8 +85,18 @@ const Answers = ({
     try {
       await axios.delete(`/api/answer?id=${answerId}`);
       setAnswers(answers.filter((answer) => answer._id !== answerId));
+
+      toast({
+        title: "Answer Deleted",
+        description: "The answer was removed successfully.",
+      });
     } catch (error: any) {
       console.error("Error deleting answer:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the answer.",
+        variant: "destructive",
+      });
     }
   };
 

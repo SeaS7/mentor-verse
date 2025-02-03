@@ -3,10 +3,10 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 // Define Notification Interface for TypeScript
 export interface INotification extends Document {
   userId: mongoose.Types.ObjectId;
-  type: "answer" | "vote" | "comment"; // Type of notification
-  sourceId: mongoose.Types.ObjectId; // ID of the answer, vote, or comment
-  message: string; // Notification message
-  isRead: boolean; // Read status
+  type: "answer" | "vote" | "comment" | "message"; // ✅ Added "message" type
+  sourceId?: mongoose.Types.ObjectId; // ✅ Made optional for "message" type
+  message: string;
+  isRead: boolean;
   createdAt: Date;
 }
 
@@ -20,12 +20,14 @@ const NotificationSchema: Schema = new Schema<INotification>(
     },
     type: {
       type: String,
-      enum: ["answer", "vote", "comment", "request"],
+      enum: ["answer", "vote", "comment", "message"], // ✅ Added "message"
       required: true,
     },
     sourceId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      required: function (this: INotification) {
+        return this.type !== "message"; // ✅ sourceId is required for everything except "message"
+      },
     },
     message: {
       type: String,

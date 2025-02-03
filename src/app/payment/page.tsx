@@ -16,8 +16,7 @@ export default function PaymentPage() {
   const searchParams = useSearchParams();
   const { data: session } = useSession();
   console.log("session", session?.user._id);
-  
-  
+
   // Get mentor object from URL
   const mentorString = searchParams.get("mentor");
   let mentor = null;

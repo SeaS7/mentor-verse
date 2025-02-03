@@ -22,7 +22,7 @@ interface Message {
   senderId: string;
   receiverId: string;
   message: string;
-  seen: boolean; // ✅ Track if the message has been seen
+  seen: boolean;
   createdAt?: any;
 }
 
@@ -54,12 +54,23 @@ export default function Chat() {
 
       setMessages(messagesData);
 
-      // ✅ Mark messages as "seen" if they are from the other person
       messagesData.forEach(async (msg) => {
         if (msg.receiverId === studentId && !msg.seen) {
           await updateDoc(doc(db, "chats", chatId, "messages", msg.id), {
             seen: true,
           });
+
+          try {
+            await fetch("/api/notifications", {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ sourceId: mentorId, userId: studentId }),
+            });
+          } catch (error) {
+            console.error("❌ Error deleting notification:", error);
+          }
         }
       });
     });
@@ -79,11 +90,31 @@ export default function Chat() {
       senderId: studentId,
       receiverId: mentorId,
       message: newMessage,
-      seen: false, // ✅ Initially, mark as "not seen"
+      seen: false,
       createdAt: serverTimestamp(),
     };
 
-    await addDoc(collection(db, "chats", chatId, "messages"), messageData);
+    // 🔥 Save message to Firestore
+    const messageRef = await addDoc(collection(db, "chats", chatId, "messages"), messageData);
+
+    // 🔥 Send a notification to MongoDB
+    try {
+      await fetch("/api/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: mentorId, // Receiver of the message
+          type: "message",
+          sourceId: studentId, // Message ID from Firestore
+          message: `New message from ${session?.user?.name}: ${newMessage}`,
+        }),
+      });
+    } catch (error) {
+      console.error("❌ Error creating notification:", error);
+    }
+
     setNewMessage("");
     setLoading(false);
   };
@@ -91,7 +122,7 @@ export default function Chat() {
   return (
     <div
       className={`flex items-center justify-center h-screen w-full ${
-        resolvedTheme === "dark" ? "bg-[#121212]" : "bg-gray-100"
+        resolvedTheme === "dark" ? "bg-black text-white" : "bg-gray-100 text-gray-900"
       }`}
     >
       <div
@@ -105,20 +136,11 @@ export default function Chat() {
             resolvedTheme === "dark" ? "border-gray-700" : "border-gray-300"
           }`}
         >
-          <h2
-            className={`text-xl font-semibold ${
-              resolvedTheme === "dark" ? "text-white" : "text-gray-800"
-            }`}
-          >
-            Chat
-          </h2>
+          <h2 className="text-xl font-semibold">Chat</h2>
         </div>
 
         {/* Messages Area (Scrollable) */}
-        <div
-          className="flex-1 overflow-y-auto p-6 space-y-4"
-          style={{ maxHeight: "70vh" }}
-        >
+        <div className="flex-1 overflow-y-auto p-6 space-y-4" style={{ maxHeight: "70vh" }}>
           {messages.map((msg) => (
             <div
               key={msg.id}
@@ -136,11 +158,7 @@ export default function Chat() {
                 }`}
               >
                 <p className="break-words">{msg.message}</p>
-                <span
-                  className={`text-xs mt-1 block text-right ${
-                    resolvedTheme === "dark" ? "text-gray-400" : "text-gray-500"
-                  }`}
-                >
+                <span className="text-xs mt-1 block text-right">
                   {msg.createdAt?.seconds
                     ? format(new Date(msg.createdAt.seconds * 1000), "HH:mm")
                     : "Sending..."}
@@ -157,11 +175,7 @@ export default function Chat() {
         </div>
 
         {/* Input Area */}
-        <div
-          className={`p-5 border-t ${
-            resolvedTheme === "dark" ? "border-gray-700" : "border-gray-300"
-          }`}
-        >
+        <div className={`p-5 border-t ${resolvedTheme === "dark" ? "border-gray-700" : "border-gray-300"}`}>
           <div className="flex items-center space-x-4">
             {/* Message Input */}
             <input

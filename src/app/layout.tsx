@@ -5,13 +5,13 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Footer from "./components/Footer";
 import { Providers } from "./providers";
-
-const inter = Inter({ subsets: ["latin"] });
 import { cn } from "@/lib/utils";
 import Header from "./components/Header";
 import ThemeSwitch from "./components/themeSwitch";
+import { Toaster } from "@/components/ui/toaster";
+import NotificationBell from "@/components/NotificationBell"; 
 
-
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Mentor Verse",
@@ -34,9 +34,14 @@ export default function RootLayout({
         >
           <Providers>
             <Header />
-            <ThemeSwitch />
+            {/* Theme and Notifications Wrapper */}
+            <div className="flex items-center justify-end space-x-4 px-6 py-2">
+              <NotificationBell />
+              <ThemeSwitch />
+            </div>
             {/* Content Wrapper */}
             <main className="flex-grow py-4">{children}</main>
+            <Toaster />
             <Footer />
           </Providers>
         </body>

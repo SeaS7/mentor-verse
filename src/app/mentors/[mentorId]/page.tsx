@@ -10,6 +10,8 @@ import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
 import Particles from "@/components/magicui/particles";
 import { useTheme } from "next-themes";
 import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
+import { useSession } from "next-auth/react";
+import { useToast } from "@/components/ui/use-toast";
 
 // Define Mentor Interface
 interface Mentor {
@@ -30,7 +32,33 @@ const MentorProfile = () => {
   const { mentorId } = useParams();
   const [mentor, setMentor] = useState<Mentor | null>(null);
   const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
   const router = useRouter();
+  const { toast } = useToast();
+
+  const handleMentorship = () => {
+    if (!session?.user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to proceed with mentorship.",
+      });
+      router.push("/login");
+      return;
+    }
+
+    if (session.user.role !== "student") {
+      toast({
+        title: "Access Denied",
+        description: "Only students are eligible for mentorship.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Encode mentor object & navigate to payment
+    const mentorData = encodeURIComponent(JSON.stringify(mentor));
+    router.push(`/payment?mentor=${mentorData}`);
+  };
 
   useEffect(() => {
     const fetchMentor = async () => {
@@ -81,7 +109,7 @@ const MentorProfile = () => {
         "Outstanding support and robust features. It's rare to find a product that delivers on all its promises.",
       name: "James Kim",
       designation: "Engineering Lead at DataPro",
-      src: "https://images.unsplash.com/photo-1636041293178-808a6762ab39?q=80&w=3464&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      src: "https://res.cloudinary.com/dmeugce9t/image/upload/v1738343111/profile_images/ytsfhadeicvqa8m4vjxo.jpg",
     },
     {
       quote:
@@ -94,10 +122,14 @@ const MentorProfile = () => {
   // Loading State (Skeleton UI)
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-10 flex flex-col items-center gap-6">
-        <div className="w-40 h-40 md:w-48 md:h-48 rounded-full bg-gray-300 animate-pulse"></div>
-        <div className="w-3/4 h-6 bg-gray-300 animate-pulse rounded"></div>
-        <div className="w-2/4 h-4 bg-gray-300 animate-pulse rounded"></div>
+      <div>
+        <div className="relative flex justify-center items-center mt-40">
+          <div className="absolute animate-spin rounded-full h-32 w-32 border-t-4 border-b-4 border-black dark:border-white"></div>
+          <img
+            src="https://www.svgrepo.com/show/509001/avatar-thinking-9.svg"
+            className="rounded-full h-28 w-28"
+          />
+        </div>
       </div>
     );
   }
@@ -116,7 +148,7 @@ const MentorProfile = () => {
         color={color}
         refresh
       />
-      <div className="container mx-auto px-4 pb-20 flex justify-center items-center">
+      <div className="container mx-auto px-4 pb-20 flex justify-center items-center mt-2">
         <div className="w-1/2 ml-4 flex flex-col items-center justify-center gap-4">
           <CardContainer className="inter-var shadow-lg dark:shadow-2xl dark:bg-black dark:border-white/[0.2] border-black/[0.1]">
             <CardBody className="bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl py-4 px-4  border  ">
@@ -129,13 +161,14 @@ const MentorProfile = () => {
                   />
                 </div>
                 {/* Profile Picture */}
-                <div className="mx-auto w-20 h-20 relative -mt-10 border-1 border-white dark:border-gray-700  overflow-hidden">
+                <div className="mx-auto w-[100px] h-[100px] relative -mt-14 border border-white dark:border-gray-700 rounded-full overflow-hidden">
                   <Image
                     src={mentor?.user_id?.profileImg || "/default-avatar.png"}
                     alt={mentor?.user_id?.username || "Mentor"}
-                    className="rounded-full object-cover"
+                    className="w-full h-full object-cover"
                     width={120}
                     height={120}
+                    priority
                   />
                 </div>
               </CardItem>
@@ -151,10 +184,7 @@ const MentorProfile = () => {
               </CardItem>
 
               {/* Additional Info */}
-              <CardItem
-                translateZ={20}
-                className="flex flex-col items-center mt-3"
-              >
+              <CardItem translateZ={20} className="flex flex-col  mt-3">
                 <p className="flex items-center gap-1 text-xs font-bold text-gray-300">
                   <IconUserFilled className="w-4 shrink-0" /> Joined{" "}
                   {mentor?.user_id?.createdAt
@@ -163,7 +193,7 @@ const MentorProfile = () => {
                       )
                     : "N/A"}
                 </p>
-                <p className="flex items-center gap-1 text-xs text-gray-300">
+                <p className="flex items-center  gap-1 text-xs text-gray-300">
                   <IconClockFilled className="w-4 shrink-0" /> Availability:{" "}
                   {mentor.availability || "Not specified"}
                 </p>
@@ -233,15 +263,10 @@ const MentorProfile = () => {
                 <CardItem
                   translateZ={20}
                   as="button"
-                  onClick={() => {
-                    const mentorData = encodeURIComponent(
-                      JSON.stringify(mentor)
-                    ); // Encode mentor object
-                    router.push(`/payment?mentor=${mentorData}`);
-                  }}
+                  onClick={handleMentorship}
                   className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold"
                 >
-                  Start MentorShip
+                  Get MentorShip
                 </CardItem>
               </div>
             </CardBody>

@@ -8,14 +8,14 @@ import { IconClockFilled, IconUserFilled, IconCamera, IconLoader } from "@tabler
 import { useParams } from "next/navigation";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  const { userId } = useParams() as { userId: string }; // ✅ Get userId from URL params
+  const { userId } = useParams() as { userId: string };
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!userId) return; // Ensure userId exists
+    if (!userId) return;
 
     const fetchUser = async () => {
       try {

@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
         };
       })
     );
-    console.log("questionStats", questionStats);
+  
 
 
     return NextResponse.json({ success: true, data: questionStats }, { status: 200 });

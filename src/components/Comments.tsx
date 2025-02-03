@@ -8,6 +8,7 @@ import { IconTrash } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import convertDateToRelativeTime from "@/utils/relativeTime";
 import slugify from "@/utils/slugify";
+import { useToast } from "@/components/ui/use-toast"; // ✅ Import custom toast hook
 
 const Comments = ({
   initialComments,
@@ -20,16 +21,31 @@ const Comments = ({
   typeId: string;
   className?: string;
 }) => {
-  const [comments, setComments] = useState(initialComments || []); // Ensure valid default value
+  const [comments, setComments] = useState(initialComments || []);
   const [newComment, setNewComment] = useState("");
   const { data: session } = useSession();
   const router = useRouter();
+  const { toast } = useToast(); // ✅ Custom toast hook
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!newComment || !session?.user) {
-      alert("Please login to add a comment");
+
+    if (!session?.user) {
+      toast({
+        title: "Authentication Required",
+        description: "You must be logged in to comment.",
+        variant: "destructive",
+      });
       router.push("/login");
+      return;
+    }
+
+    if (!newComment.trim()) {
+      toast({
+        title: "Empty Comment",
+        description: "Please enter a valid comment before submitting.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -43,24 +59,44 @@ const Comments = ({
 
       setNewComment("");
       setComments([response.data.data, ...comments]);
+      toast({
+        title: "Comment Added",
+        description: "Your comment has been posted successfully!",
+      });
     } catch (error) {
       console.error("Error creating comment:", error);
-      alert("Error creating comment");
+      toast({
+        title: "Error",
+        description: "Failed to add comment. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const deleteComment = async (commentId: string) => {
     if (!session?.user) {
-      alert("Please login to delete a comment");
+      toast({
+        title: "Authentication Required",
+        description: "You must be logged in to delete a comment.",
+        variant: "destructive",
+      });
       return;
     }
 
     try {
       await axios.delete(`/api/comments?id=${commentId}`);
       setComments(comments.filter((comment) => comment._id !== commentId));
+      toast({
+        title: "Comment Deleted",
+        description: "Your comment has been removed successfully.",
+      });
     } catch (error) {
       console.error("Error deleting comment:", error);
-      alert("Error deleting comment");
+      toast({
+        title: "Error",
+        description: "Failed to delete comment. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

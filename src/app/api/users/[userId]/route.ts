@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
   }
 
   try {
-    const user = await User.findById(userId).select("username email role profileImg reputation");
+    const user = await User.findById(userId).select("username email role profileImg reputation createdAt updatedAt");
     console.log("user",user);
 
     if (!user) {

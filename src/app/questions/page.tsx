@@ -38,10 +38,10 @@ function QuestionsList() {
     };
 
     fetchQuestions();
-  }, [page, tagSearch, searchText]); // ✅ Proper dependencies for useEffect
+  }, [page, tagSearch, searchText]); 
 
   return (
-    <div className="container mx-auto px-4 pb-20 pt-36">
+    <div className="container mx-auto px-4 pb-20 pt-20">
       <div className="mb-10 pb-10 flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl font-bold">All Questions</h1>
         <Link href="/questions/ask">

@@ -16,7 +16,7 @@ import { format } from "date-fns";
 import { useTheme } from "next-themes";
 import axios from "axios";
 import { toast } from "@/components/ui/use-toast";
-
+import Image from "next/image";
 
 interface Message {
   id: string;
@@ -34,6 +34,11 @@ interface SessionLink {
   time: string;
 }
 
+interface UserProfile {
+  _id: string;
+  username: string;
+  profileImg: string;
+}
 export default function Chat() {
   const { data: session } = useSession();
   const { mentorId } = useParams() as { mentorId: string };
@@ -53,6 +58,7 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [mentor, setMentor] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -60,6 +66,23 @@ export default function Chat() {
       setTheme("dark");
     }
   }, [resolvedTheme, setTheme]);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        if (!studentId || !mentorId) return;
+
+        const mentorResponse = await axios.get(`/api/users/${mentorId}`);
+
+        setMentor(mentorResponse.data.user);
+        console.log("User details fetched:", mentor);
+      } catch (error) {
+        console.error("❌ Error fetching user details:", error);
+      }
+    };
+
+    fetchUserDetails();
+  }, [studentId, mentorId]);
 
   useEffect(() => {
     if (!studentId || !mentorId) return;
@@ -268,8 +291,27 @@ export default function Chat() {
         <div
           className={`rounded-lg shadow-lg flex flex-col h-full ${resolvedTheme === "dark" ? "bg-gray-800" : "bg-white"}`}
         >
-          <div className="p-4 border-b border-gray-700">
-            <h2 className="text-xl font-semibold">Chat</h2>
+          <div className="p-4 border-b border-gray-700 flex items-center space-x-4">
+            {mentor ? (
+              <div className="flex items-center justify-between w-full">
+                {/* Left Side: "Chat with" Text */}
+                <h2 className="text-xl font-semibold">Chat with</h2>
+
+                {/* Right Side: Mentor Name & Profile Image */}
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl font-semibold">{mentor.username}</h2>
+                  <Image
+                    src={mentor.profileImg || "/default-avatar.png"}
+                    alt="Profile"
+                    width={50}
+                    height={50}
+                    className="rounded-full border"
+                  />
+                </div>
+              </div>
+            ) : (
+              <h2 className="text-xl font-semibold">Loading...</h2>
+            )}
           </div>
 
           {/* ✅ Chat Messages */}

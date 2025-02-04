@@ -16,6 +16,7 @@ import { useToast } from "@/components/ui/use-toast";
 // Define Mentor Interface
 interface Mentor {
   user_id: {
+    _id: string;
     profileImg?: string;
     username: string;
     createdAt: string;

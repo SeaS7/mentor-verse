@@ -17,7 +17,7 @@ const PaymentSchema: Schema = new Schema<IPayment>(
     mentorId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     amount: { type: Number, required: true },
     status: { type: String, enum: ["pending", "completed", "failed"], default: "pending" },
-    transactionId: { type: String, unique: true, required: true },
+    transactionId: { type: String,  required: true },
   },
   { timestamps: true }
 );

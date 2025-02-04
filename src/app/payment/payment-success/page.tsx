@@ -19,12 +19,12 @@ export default function PaymentSuccess() {
     if (status === "loading") return;
 
     if (!session?.user?._id) {
-      setError("User is not authenticated");
+      setError("");
       setLoading(false);
       return;
     }
 
-    if (!mentorId || !amount ) {
+    if (!mentorId || !amount) {
       setError("Missing payment details");
       setLoading(false);
       return;
@@ -44,8 +44,8 @@ export default function PaymentSuccess() {
         const matchResponse = await axios.post("/api/match", {
           studentId: session.user._id,
           mentorId,
-          paymentId,
-          agreedAmount: amount, // Using the payment amount as the agreed amount
+          paymentId: mentorId,
+          agreedAmount: amount,
         });
 
         console.log("Mentor-Student Match Created:", matchResponse.data);
@@ -57,20 +57,33 @@ export default function PaymentSuccess() {
     };
 
     savePaymentAndMatch();
-  }, [mentorId, session, amount,  status]);
+  }, [mentorId, session, amount, status]);
 
-  if (loading || status === "loading") return <p>Processing...</p>;
+  if (loading || status === "loading")
+    return (
+      <div>
+        <div className="relative flex justify-center items-center mt-40">
+          <div className="absolute animate-spin rounded-full h-32 w-32 border-t-4 border-b-4 border-black dark:border-white"></div>
+          <img
+            src="https://www.svgrepo.com/show/509001/avatar-thinking-9.svg"
+            className="rounded-full h-28 w-28"
+          />
+        </div>
+      </div>
+    );
   if (error) return <p>{error}</p>;
 
   return (
     <div className="max-w-lg mx-auto text-center mt-28 p-10 border rounded-md shadow-md">
       <h1 className="text-3xl font-bold">Payment Successful</h1>
-      <p className="text-gray-600 mt-2">Your session has been scheduled.</p>
+      <p className="text-gray-600 mt-2">
+        Your Connection Has Been Established.
+      </p>
       <button
-        onClick={() => router.push("/dashboard")}
+        onClick={() => router.push(`/chat/${mentorId}`)}
         className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md"
       >
-        Go to Dashboard
+        Start Communication
       </button>
     </div>
   );

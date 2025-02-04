@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
     if (!studentId || !mentorId || !paymentId || !agreedAmount) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+    console.log("Match details:", studentId, mentorId, paymentId, agreedAmount);
 
     // Check if a match already exists to prevent duplicates
     const existingMatch = await MentorStudentMatch.findOne({ studentId, mentorId });
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
     const newMatch = await MentorStudentMatch.create({
       studentId,
       mentorId,
-      paymentId,
+      paymentId ,
       agreedAmount,
       isPaid: true, // Since payment is confirmed
     });

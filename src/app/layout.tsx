@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import Header from "./components/Header";
 import ThemeSwitch from "./components/themeSwitch";
 import { Toaster } from "@/components/ui/toaster";
-import NotificationBell from "@/components/NotificationBell"; 
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,6 +24,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+      <link rel="icon" type="image/png" href="/favicon.png" />
+      </head>
       <AuthProvider>
         <body
           className={cn(

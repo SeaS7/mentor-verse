@@ -14,12 +14,14 @@ const VoteButtons = ({
   upvotesCount,
   downvotesCount,
   className,
+  autherId
 }: {
   type: "question" | "answer";
   id: string;
   upvotesCount: number;
   downvotesCount: number;
   className?: string;
+  autherId: string
 }) => {
   const [voteStatus, setVoteStatus] = useState<"upvoted" | "downvoted" | null>(
     null
@@ -53,7 +55,7 @@ const VoteButtons = ({
     };
 
     fetchVoteStatus();
-  }, [session, id, type]);
+  }, [session, id, type, voteResult]);
 
   const handleVote = async (newVoteStatus: "upvoted" | "downvoted") => {
     if (!session) {
@@ -72,6 +74,7 @@ const VoteButtons = ({
         voteStatus: newVoteStatus,
         type,
         typeId: id,
+        autherId
       });
 
       if (response.data.success) {

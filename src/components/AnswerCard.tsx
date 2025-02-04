@@ -50,10 +50,11 @@ const Answer = ({
           id={answer._id}
           upvotesCount={answer.totalUpvotes}
           downvotesCount={answer.totalDownvotes}
+          autherId={answer.authorId}
         />
 
         {/* Accept Answer Button (Visible to Question Author) */}
-        {session?.user?._id === questionAuthorId && (
+        {(session?.user?._id === questionAuthorId || isAccepted )&& (
           <button
             className={`flex h-10 w-10 items-center justify-center rounded-full border p-1 text-green-500 duration-200 
               ${isAccepted ? "bg-green-500 text-white" : "border-green-500 hover:bg-green-500/10"}`}

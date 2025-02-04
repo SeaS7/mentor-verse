@@ -15,12 +15,12 @@ const QuestionSchema: Schema = new Schema<IQuestion>(
     title: {
       type: String,
       required: true,
-      maxlength: 100, // Max length similar to Appwrite
+      maxlength: 100,
     },
     content: {
       type: String,
       required: true,
-      maxlength: 10000, // Max length similar to Appwrite
+      maxlength: 10000,
     },
     authorId: {
       type: mongoose.Schema.Types.ObjectId,

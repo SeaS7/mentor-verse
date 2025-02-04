@@ -26,10 +26,17 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload image to Cloudinary
+    // Upload image to Cloudinary with transformation
     return new Promise((resolve) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: "profile_images" },
+        {
+          folder: "profile_images",
+          transformation: [
+            { width: 760, height: 760, gravity: "face", crop: "thumb" }, // Focus on the face
+            { quality: "auto" }, // Optimize quality
+            { fetch_format: "auto" } // Auto-select the best format
+          ],
+        },
         async (error, result) => {
           if (error) {
             console.error("Cloudinary Upload Error:", error);

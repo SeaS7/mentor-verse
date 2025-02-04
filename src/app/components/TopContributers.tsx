@@ -5,9 +5,15 @@ import { AnimatedList } from "@/components/magicui/animated-list";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import convertDateToRelativeTime from "@/utils/relativeTime";
+import Link from "next/link";
+import slugify from "@/utils/slugify";
 
 const Notification = ({ user }: { user: any }) => {
   return (
+    <Link
+    href={`/users/${user?._id?.toString() || "unknown"}/${slugify(
+                    user.username || "anonymous"
+                  )}`}>
     <figure
       className={cn(
         "relative mx-auto min-h-fit w-full min-w-24 max-w-[400px] transform cursor-pointer overflow-hidden rounded-2xl p-4",
@@ -41,6 +47,7 @@ const Notification = ({ user }: { user: any }) => {
         </div>
       </div>
     </figure>
+    </Link>
   );
 };
 
@@ -79,7 +86,7 @@ export default function TopContributers() {
   }, []);
 
   return (
-    <div className="bg-background relative flex lg:h-[600px] mid:max-h-[400px] mid:min-h-[400px] lg:w-[32rem] mid:w-full mid:max-w-[32rem] flex-col overflow-hidden rounded-lg p-6 shadow-lg">
+    <div className="bg-background relative flex lg:h-[700px] mid:max-h-[400px] mid:min-h-[400px] lg:w-[32rem] mid:w-full mid:max-w-[32rem] flex-col overflow-hidden rounded-lg p-6 shadow-lg">
       {loading ? (
         <SkeletonLoader />
       ) : (

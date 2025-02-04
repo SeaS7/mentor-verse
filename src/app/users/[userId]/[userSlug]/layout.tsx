@@ -4,8 +4,14 @@ import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import convertDateToRelativeTime from "@/utils/relativeTime";
 import Navbar from "./Navbar";
-import { IconClockFilled, IconUserFilled, IconCamera, IconLoader } from "@tabler/icons-react";
+import {
+  IconClockFilled,
+  IconUserFilled,
+  IconCamera,
+  IconLoader,
+} from "@tabler/icons-react";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const { userId } = useParams() as { userId: string };
@@ -13,6 +19,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
     if (!userId) return;
@@ -32,7 +39,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   }, [userId]);
 
   // Handle File Selection & Upload
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (!event.target.files || event.target.files.length === 0) return;
     const file = event.target.files[0];
 
@@ -44,7 +53,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       const response = await axios.post("/api/users/profile-image", formData);
       if (response.data.success) {
-        setUser((prevUser: any) => ({ ...prevUser, profileImg: response.data.profileImg }));
+        setUser((prevUser: any) => ({
+          ...prevUser,
+          profileImg: response.data.profileImg,
+        }));
       }
     } catch (error) {
       console.error("Error updating profile image:", error);
@@ -87,16 +99,23 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               </div>
             )}
 
-            {/* Upload Button */}
-            <button
-              onClick={() => !uploading && fileInputRef.current?.click()}
-              className="absolute bottom-2 right-2 flex items-center justify-center w-10 h-10 bg-gray-800 text-white rounded-full shadow-md"
-              disabled={uploading}
-            >
-              <IconCamera size={20} />
-            </button>
+            {session?.user?._id === user?._id && (
+              <button
+                onClick={() => !uploading && fileInputRef.current?.click()}
+                className="absolute bottom-2 right-2 flex items-center justify-center w-10 h-10 bg-gray-800 text-white rounded-full shadow-md"
+                disabled={uploading}
+              >
+                <IconCamera size={20} />
+              </button>
+            )}
 
-            <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleFileChange} />
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
           </div>
         </div>
 

@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import React from "react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import { toast } from "./ui/use-toast";
 
 const LabelInputContainer = ({
   children,
@@ -48,53 +49,40 @@ const QuestionForm = ({ question }: { question?: any }) => {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
 
-  const createQuestion = async () => {
-    let attachmentUrl = "";
+  const addTag = () => {
+    if (!tag.trim()) return;
 
-    if (formData.attachment) {
-      attachmentUrl = await axios
-        .post("/api/upload-media",formData.attachment)
-        .then((res) => res.data.url);
-    }
+    // Format tag: lowercase & replace spaces with hyphens
+    const formattedTag = tag.trim().toLowerCase().replace(/\s+/g, "-");
 
-    const response = await axios.post("/api/questions", {
-      title: formData.title,
-      content: formData.content,
-      authorId: session?.user._id,
-      tags: Array.from(formData.tags),
-      attachment: attachmentUrl,
-    });
+    setFormData((prev) => ({
+      ...prev,
+      tags: new Set([...prev.tags, formattedTag]), // Ensure unique tags
+    }));
 
-    return response.data;
-  };
-
-  const updateQuestion = async () => {
-    if (!question) throw new Error("Please provide a question");
-
-    let attachmentUrl = question.attachmentId;
-
-    if (formData.attachment) {
-      attachmentUrl = await axios
-        .post("/api/upload-media", formData.attachment)
-        .then((res) => res.data.url);
-    }
-
-    const response = await axios.put("/api/questions", {
-      id: question._id,
-      title: formData.title,
-      content: formData.content,
-      tags: Array.from(formData.tags),
-      attachment: attachmentUrl,
-    });
-
-    return response.data;
+    setTag(""); // Clear input after adding
   };
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!formData.title || !formData.content || !formData.authorId) {
-      setError(() => `Please fill out all fields`);
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "Please login before submitting a question.",
+          variant: "destructive",
+        });
+
+        router.push("/login");
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Please fill out all fields.",
+        variant: "destructive",
+      });
+      setError("Please fill out all fields");
       return;
     }
 
@@ -103,8 +91,21 @@ const QuestionForm = ({ question }: { question?: any }) => {
 
     try {
       const response = question
-        ? await updateQuestion()
-        : await createQuestion();
+        ? await axios.put("/api/questions", {
+            id: question._id,
+            title: formData.title,
+            content: formData.content,
+            tags: Array.from(formData.tags),
+            attachment: formData.attachment,
+          })
+        : await axios.post("/api/questions", {
+            title: formData.title,
+            content: formData.content,
+            authorId: session?.user._id,
+            tags: Array.from(formData.tags),
+            attachment: formData.attachment,
+          });
+
       router.push(`/questions/${response.data._id}/${slugify(formData.title)}`);
     } catch (error: any) {
       setError(error.response?.data?.message || "Error submitting question");
@@ -122,13 +123,12 @@ const QuestionForm = ({ question }: { question?: any }) => {
           </div>
         </LabelInputContainer>
       )}
+
       <LabelInputContainer>
         <Label htmlFor="title">
           Title
           <br />
-          <small>
-            Be specific and imagine you're asking a question to another person.
-          </small>
+          <small>Be specific and imagine you're asking another person.</small>
         </Label>
         <Input
           id="title"
@@ -146,9 +146,7 @@ const QuestionForm = ({ question }: { question?: any }) => {
         <Label htmlFor="content">
           Details of your problem
           <br />
-          <small>
-            Provide as much detail as possible. Minimum 20 characters.
-          </small>
+          <small>Provide as much detail as possible. Minimum 20 characters.</small>
         </Label>
         <div className="relative min-h-[200px] rounded-lg border bg-gray-100 p-4 text-gray-900 dark:border-white/20 dark:bg-slate-900 dark:text-white">
           <RTE
@@ -192,18 +190,12 @@ const QuestionForm = ({ question }: { question?: any }) => {
           <button
             className="bg-gray-200 px-4 py-2 rounded-md dark:bg-gray-700"
             type="button"
-            onClick={() => {
-              if (tag.length === 0) return;
-              setFormData((prev) => ({
-                ...prev,
-                tags: new Set([...Array.from(prev.tags), tag]),
-              }));
-              setTag("");
-            }}
+            onClick={addTag}
           >
             Add
           </button>
         </div>
+
         <div className="flex flex-wrap gap-2">
           {Array.from(formData.tags).map((tag, index) => (
             <div

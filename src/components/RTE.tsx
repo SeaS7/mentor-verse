@@ -5,12 +5,10 @@ import { useTheme } from "next-themes";
 import Editor from "@uiw/react-md-editor";
 
 const DynamicRTE = dynamic(
-    () =>
-        import("@uiw/react-md-editor").then((mod) => {
-            return mod.default;
-        }),
+    () => import("@uiw/react-md-editor").then((mod) => mod.default),
     { ssr: false }
 );
+
 const MarkdownPreview = ({ source }: { source: string }) => {
     const { theme } = useTheme(); // Detect the current theme
 
@@ -21,12 +19,6 @@ const MarkdownPreview = ({ source }: { source: string }) => {
                     ? "bg-slate-900 text-white"
                     : "bg-gray-100 text-black"
             }`}
-            style={
-                {
-                    "--color-pre-background": theme === "dark" ? "#1E293B" : "#F3F4F6",
-                    "--color-pre-color": theme === "dark" ? "#FFFFFF" : "#000000",
-                } as React.CSSProperties
-            }
         >
             <Editor.Markdown
                 source={source}
@@ -35,10 +27,26 @@ const MarkdownPreview = ({ source }: { source: string }) => {
                     color: theme === "dark" ? "#FFFFFF" : "#000000",
                 }}
             />
+            {/* Apply styles globally but only in light mode */}
+            <style jsx global>{`
+                /* Light theme (when the 'dark' class is NOT applied) */
+                :root:not(.dark) pre {
+                    background-color: #E5E7EB !important; /* Light gray */
+                    color: #333333 !important; /* Dark text */
+                    padding: 10px;
+                    border-radius: 6px;
+                    overflow-x: auto;
+                }
+
+                :root:not(.dark) code {
+                    background-color: #f4f4f5 !important;
+                    padding: 2px 4px;
+                    border-radius: 4px;
+                }
+            `}</style>
         </div>
     );
 };
-
 
 const ThemedRTE = ({
     value,

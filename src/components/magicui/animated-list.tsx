@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import React, { ReactElement, useEffect, useMemo, useState } from "react";
+import React, { ReactElement, useEffect, useMemo, useState, useRef } from "react";
 
 export const AnimatedList = React.memo(
     ({
@@ -15,13 +15,23 @@ export const AnimatedList = React.memo(
     }) => {
         const [index, setIndex] = useState(0);
         const childrenArray = React.Children.toArray(children);
+        const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-        useEffect(() => {
-            const interval = setInterval(() => {
+        const startInterval = () => {
+            intervalRef.current = setInterval(() => {
                 setIndex(prevIndex => (prevIndex + 1) % childrenArray.length);
             }, delay);
+        };
 
-            return () => clearInterval(interval);
+        const stopInterval = () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+
+        useEffect(() => {
+            startInterval();
+            return () => stopInterval();
         }, [childrenArray.length, delay]);
 
         const itemsToShow = useMemo(
@@ -30,13 +40,17 @@ export const AnimatedList = React.memo(
         );
 
         return (
-             <div className={`relative flex flex-col items-center gap-4 ${className}`}>
-        <AnimatePresence>
-            {itemsToShow.map(item => (
-                <AnimatedListItem key={(item as ReactElement).key}>{item}</AnimatedListItem>
-            ))}
-        </AnimatePresence>
-    </div>
+            <div
+                className={`relative flex flex-col items-center gap-4 ${className}`}
+                onMouseEnter={stopInterval}
+                onMouseLeave={startInterval}
+            >
+                <AnimatePresence>
+                    {itemsToShow.map(item => (
+                        <AnimatedListItem key={(item as ReactElement).key}>{item}</AnimatedListItem>
+                    ))}
+                </AnimatePresence>
+            </div>
         );
     }
 );

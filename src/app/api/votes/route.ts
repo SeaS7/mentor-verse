@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
   await dbConnect();
 
   try {
-    const { votedById, voteStatus, type, typeId } = await request.json();
+    const { votedById, voteStatus, type, typeId, autherId } = await request.json();
 
     if (!votedById || !voteStatus || !type || !typeId) {
       return NextResponse.json({ success: false, message: "Missing fields" }, { status: 400 });
@@ -86,14 +86,15 @@ export async function POST(request: NextRequest) {
     const voteResult = totalUpvotes - totalDownvotes;
 
     // Find the post owner
-    const postOwner = await User.findById(votedById);
+    const postOwner = await User.findById(autherId);
+
 
     if (postOwner) {
       // Create a notification
       await Notification.create({
         userId: postOwner._id,
         type: "vote",
-        sourceId: typeId,
+        sourceId: votedById,
         message: `Someone ${voteStatus} your post!`,
         isRead: false,
       });
@@ -107,7 +108,6 @@ export async function POST(request: NextRequest) {
       await postOwner.save();
     }
 
-    
 
     return NextResponse.json({
       success: true,

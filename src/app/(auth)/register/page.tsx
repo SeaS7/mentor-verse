@@ -52,29 +52,7 @@ export default function SignUpForm() {
   const username = form.watch("username");
 
   // Debounce username input to avoid frequent API calls
-  useEffect(() => {
-    const checkUsernameUnique = async () => {
-      if (username) {
-        try {
-          const response = await axios.get<ApiResponse>(
-            `/api/check-username-unique?username=${username}`
-          );
-          setTextColor(
-            response.status === 200 ? "text-green-500" : "text-red-500"
-          );
-          setUsernameMessage(response.data.message);
-        } catch (error) {
-          const axiosError = error as AxiosError<ApiResponse>;
-          setTextColor("text-red-500");
-          setUsernameMessage(
-            axiosError.response?.data.message ?? "Error checking username"
-          );
-        }
-      }
-    };
-    const timer = setTimeout(checkUsernameUnique, 500);
-    return () => clearTimeout(timer);
-  }, [username]);
+
 
   const onSubmit = async (data: any) => {
     console.log("Form submitted with data:", data);
@@ -269,7 +247,7 @@ export default function SignUpForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Availability</FormLabel>
-                    <Input {...field} placeholder="Enter your availability" />
+                    <Input {...field} placeholder="e.g. 2 video sessions per week/month" />
                     {errors.availability && (
                       <p className="text-sm text-red-500 mt-1">
                         {errors.availability.message}
@@ -283,13 +261,13 @@ export default function SignUpForm() {
                 name="base_rate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Base Rate (RS)</FormLabel>
+                    <FormLabel>Base Rate (RS)/Month</FormLabel>
                     <Input
                       {...field}
                       type="number"
                       min="0"
                       step="1"
-                      placeholder="Enter your base rate in RS"
+                      placeholder="Enter your base rate in RS per month"
                     />
                     {errors.base_rate && (
                       <p className="text-sm text-red-500 mt-1">

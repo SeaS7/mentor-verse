@@ -64,7 +64,7 @@ export default function UserProfile() {
       ) : (
         <p className="text-4xl font-bold text-gray-800 dark:text-gray-200">
           {stat.value === 0 ? (
-            <span>0</span> 
+            <span>0</span>
           ) : (
             <NumberTicker value={stat.value} />
           )}
@@ -75,24 +75,28 @@ export default function UserProfile() {
 </MagicContainer>
 
 
-      {/* Notifications */}
-      <h2 className="mt-10 text-2xl font-bold">Recent Activity</h2>
-      <div className="mt-4 space-y-4">
-        {loading ? (
-          <Skeleton className="h-24 w-full" />
-        ) : notifications.length > 0 ? (
-          notifications.map((notification, index) => (
-            <div key={index} className="border p-4 rounded-md shadow-md dark:border-gray-700">
-              <p className="text-sm text-gray-500">
-                {convertDateToRelativeTime(new Date(notification.createdAt))}
-              </p>
-              <p className="font-medium">{notification.message}</p>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-500">No recent activity.</p>
-        )}
-      </div>
+      {session?.user?._id === user?._id && (
+        <>
+          <h2 className="mt-10 text-2xl font-bold">Recent Activity</h2>
+          <div className="mt-4 space-y-4">
+            {loading ? (
+              <Skeleton className="h-24 w-full" />
+            ) : notifications.length > 0 ? (
+              notifications.map((notification, index) => (
+                <div key={index} className="border p-4 rounded-md shadow-md dark:border-gray-700">
+                  <p className="text-sm text-gray-500">
+                    {convertDateToRelativeTime(new Date(notification.createdAt))}
+                  </p>
+                  <p className="font-medium">{notification.message}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">No recent activity.</p>
+            )}
+          </div>
+        </>
+      )}
+      
     </div>
   );
 }

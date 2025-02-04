@@ -113,6 +113,7 @@ const Page = () => {
               id={question?._id}
               upvotesCount={upvotes || 0}
               downvotesCount={downvotes || 0}
+              autherId={question?.authorId}
             />
             {session?.user?._id === question?.authorId?._id && (
               <>

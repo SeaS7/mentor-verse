@@ -4,8 +4,9 @@ import CheckoutPage from "@/components/checkoutPage";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
+import { useEffect } from "react";
 
 if (!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY) {
   throw new Error("NEXT_PUBLIC_STRIPE_PUBLIC_KEY is not defined");
@@ -15,8 +16,29 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 
 export default function PaymentPage() {
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
-  console.log("session", session?.user._id);
+  const { data: session, status } = useSession(); // Get session status
+  const router = useRouter();
+
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if(status === "loading") return
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  // Show a loading message while checking authentication
+  if (status === "loading") {
+    return (
+      <main className="h-screen flex items-center justify-center text-xl font-bold">
+        Checking authentication...
+      </main>
+    );
+  }
+
+  if (!session?.user) {
+    return null; // Prevent rendering if user is being redirected
+  }
 
   // Get mentor object from URL
   const mentorString = searchParams.get("mentor");
@@ -36,7 +58,7 @@ export default function PaymentPage() {
   const conversionRate = 0.0035; // Update this rate if needed
   const baseRateUSD = mentor?.base_rate ? (mentor.base_rate * conversionRate).toFixed(2) : "0.00";
   const amount = baseRateUSD ? parseFloat(baseRateUSD) : 0;
-  const mentorId = mentor?._id || "";
+  const mentorId = mentor?.user_id?._id || "";
 
   if (!mentor || amount <= 0 || !mentorId) {
     toast({

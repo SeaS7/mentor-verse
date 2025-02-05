@@ -9,7 +9,7 @@ export default function Home() {
     <main className="flex flex-col items-center justify-center">
       <Header />
       <HeroSection />
-      <div className="flex flex-wrap md:flex-row-reverse">
+      <div className="flex flex-wrap md:flex-row-reverse max-w-6xl">
         <div className="w-full md:w-1/2">
           <div className="px-5">
             <TopContributers />

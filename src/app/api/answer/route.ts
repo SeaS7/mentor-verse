@@ -105,8 +105,6 @@ export async function GET(request: NextRequest) {
           };
         })
       );
-
-    console.log("answers", answersStats);
     return NextResponse.json({ success: true, data: answersStats }, { status: 200 });
   } catch (error) {
     console.error("Error fetching answers:", error);

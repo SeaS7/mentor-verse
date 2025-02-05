@@ -8,8 +8,6 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
   await dbConnect();
 
   const { userId } = await params;
-  console.log(  "userId",userId);
-  
 
   // Validate user ID
   if (!mongoose.Types.ObjectId.isValid(userId)) {

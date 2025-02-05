@@ -8,7 +8,6 @@ import { MagicCard, MagicContainer } from "@/components/magicui/magic-card";
 import NumberTicker from "@/components/magicui/number-ticker";
 import convertDateToRelativeTime from "@/utils/relativeTime";
 import  Skeleton  from "@/components/ui/skeleton";
-import { IconCamera } from "@tabler/icons-react";
 
 export default function UserProfile() {
   const { userId } = useParams();
@@ -96,7 +95,6 @@ export default function UserProfile() {
           </div>
         </>
       )}
-      
     </div>
   );
 }

@@ -12,10 +12,13 @@ import {
 } from "@tabler/icons-react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import ShimmerButton from "@/components/magicui/shimmer-button";
+import Link from "next/link";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const { userId } = useParams() as { userId: string };
   const [user, setUser] = useState<any>(null);
+  const [mentor, setMentor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -27,11 +30,25 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     const fetchUser = async () => {
       try {
         const response = await axios.get(`/api/users/${userId}`);
-        setUser(response.data.user);
+        const userData = response.data.user;
+        setUser(userData);
+
+        if (userData.role === "mentor") {
+          fetchMentor(userId);
+        }
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
         setLoading(false);
+      }
+    };
+
+    const fetchMentor = async (id: string) => {
+      try {
+        const response = await axios.get(`/api/mentors/user/${userId}`);
+        setMentor(response.data.data);
+      } catch (error) {
+        console.error("Error fetching mentor data:", error);
       }
     };
 
@@ -82,7 +99,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <div className="container mx-auto space-y-4 px-4 pb-20 pt-10">
+    <div className="container mx-auto space-y-4 px-4 pb-20 pt-16">
       <div className="flex flex-col gap-4 sm:flex-row">
         {/* Profile Picture with Edit Button */}
         <div className="relative w-40 shrink-0">
@@ -139,6 +156,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </div>
         </div>
+        {(session?.user?._id !== user?._id && user.role === "mentor") && (
+           <Link href={`/mentors/${mentor?._id}`}>
+          <ShimmerButton className="shadow-2xl h-14 w-56">
+            <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
+              Get MentorShip
+            </span>
+          </ShimmerButton>
+          </Link>
+        )}
       </div>
 
       {/* Navigation & Content */}

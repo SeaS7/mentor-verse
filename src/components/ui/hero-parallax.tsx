@@ -130,7 +130,7 @@ const MentorCard = ({
           ⭐ <div>{rating || "None"}</div>
         </li>
         <li className="flex flex-col items-center">
-          🤝 <div>{connections} </div>
+        💰 <div>{connections} </div>
         </li>
         <li className="flex flex-col items-center">
           🏆 <div>{reputation}</div>
@@ -169,7 +169,7 @@ export function MarqueeDemo({
               expertise={mentor.expertise || []}
               rating={mentor.rating || 0}
               reputation={mentor?.user_id?.reputation || 0}
-              connections={mentor.connections || 0}
+              connections={mentor.base_rate || 0}
             />
           ) : (
             <MentorCardSkeleton key={idx} />

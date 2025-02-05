@@ -28,8 +28,9 @@ export async function POST(request: NextRequest) {
       tags,
       attachmentId: attachment || "",
     });
+    console.log("newQuestion",newQuestion);
 
-    return NextResponse.json({ success: true, data: newQuestion }, { status: 201 });
+    return NextResponse.json({ success: true, message: "Question added successfully", data: newQuestion }, { status: 201 });
   } catch (error) {
     console.error("Error adding question:", error);
     return createErrorResponse("Error adding question", 500);

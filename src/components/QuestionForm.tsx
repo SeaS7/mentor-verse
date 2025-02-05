@@ -106,8 +106,6 @@ const QuestionForm = ({ question }: { question?: any }) => {
             attachment: formData.attachment,
           });
 
-    
-
       router.push(`/questions/${response.data.data._id}/${slugify(formData.title)}`);
     } catch (error: any) {
       setError(error.response?.data?.message || "Error submitting question");

@@ -8,7 +8,6 @@ export async function GET(
   { params }: { params: { mentorId: string } }
 ) {
   await dbConnect();
-  console.log(params.mentorId);
 
   try {
     const mentor = await MentorModel.findById(params.mentorId)

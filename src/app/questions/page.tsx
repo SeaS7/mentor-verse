@@ -38,7 +38,7 @@ function QuestionsList() {
     };
 
     fetchQuestions();
-  }, [page, tagSearch, searchText]); 
+  }, [page, tagSearch, searchText]);
 
   return (
     <div className="container mx-auto px-4 pb-20 pt-20">

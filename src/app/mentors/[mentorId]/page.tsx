@@ -33,7 +33,7 @@ const MentorProfile = () => {
   const { mentorId } = useParams();
   const [mentor, setMentor] = useState<Mentor | null>(null);
   const [loading, setLoading] = useState(true);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -62,6 +62,7 @@ const MentorProfile = () => {
   };
 
   useEffect(() => {
+    if (status === "loading") return;
     const fetchMentor = async () => {
       try {
         const response = await axios.get(`/api/mentors/${mentorId}`);
@@ -86,13 +87,41 @@ const MentorProfile = () => {
   const testimonials = [
     {
       quote:
-        "The attention to detail and innovative features have completely transformed our workflow. This is exactly what we've been looking for.",
-      name: "Sarah Chen",
-      designation: "Product Manager at TechFlow",
+        "The mentorship provided was incredibly insightful. The mentor's guidance helped me refine my skills and gain confidence in my field.",
+      name: "Ali Khan",
+      designation: "Software Engineer at DevSolutions",
       src: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=3560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
-    
+    {
+      quote:
+        "The mentor's expertise in the industry is unmatched. Their feedback and suggestions significantly improved my project execution.",
+      name: "Fatima Noor",
+      designation: "Full Stack Developer at CodeCrafters",
+      src: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+      quote:
+        "I never thought online mentorship could be this effective. The sessions were well-structured and tailored to my learning needs.",
+      name: "Bilal Ahmed",
+      designation: "Data Analyst at InsightHub",
+      src: "https://images.unsplash.com/photo-1623582854588-d60de57fa33f?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+      quote:
+        "My mentor not only provided technical knowledge but also valuable career advice that helped me land my first job.",
+      name: "Usman Tariq",
+      designation: "Cybersecurity Analyst at SecureTech",
+      src: "https://images.unsplash.com/photo-1636041293178-808a6762ab39?q=80&w=3464&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    {
+      quote:
+        "The mentor was patient, encouraging, and extremely knowledgeable. The support I received was beyond my expectations.",
+      name: "Zaid Abbas",
+      designation: "AI Researcher at FutureAI Labs",
+      src: "https://images.unsplash.com/photo-1624561172888-ac93c696e10c?q=80&w=2592&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
   ];
+
   // Loading State (Skeleton UI)
   if (loading) {
     return (

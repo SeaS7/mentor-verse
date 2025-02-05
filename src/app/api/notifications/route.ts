@@ -39,12 +39,14 @@ export async function POST(req: NextRequest) {
     const newNotification = new Notification({
       userId,
       type,
-      sourceId: formattedSourceId, // ✅ Converts Firestore ID only if it's a valid ObjectId
+      sourceId: formattedSourceId,
       message,
       isRead: false,
     });
 
     await newNotification.save();
+    console.log("✅ Notification created:", newNotification);
+    
     return NextResponse.json({ success: true, notification: newNotification });
   } catch (error) {
     console.error("❌ Error creating notification:", error);

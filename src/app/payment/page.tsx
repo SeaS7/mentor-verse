@@ -4,9 +4,9 @@ import CheckoutPage from "@/components/checkoutPage";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 if (!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY) {
   throw new Error("NEXT_PUBLIC_STRIPE_PUBLIC_KEY is not defined");
@@ -15,19 +15,44 @@ if (!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY) {
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 
 export default function PaymentPage() {
-  const searchParams = useSearchParams();
-  const { data: session, status } = useSession(); // Get session status
+  const { data: session, status } = useSession();
   const router = useRouter();
+  const [mentor, setMentor] = useState<any>(null);
+  const [amount, setAmount] = useState<number>(0);
+  const [mentorId, setMentorId] = useState<string>("");
 
-  // Redirect unauthenticated users to login
   useEffect(() => {
-    if(status === "loading") return
-    if (status === "unauthenticated") {
-      router.push("/login");
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const mentorString = urlParams.get("mentor");
+
+      if (mentorString) {
+        try {
+          const parsedMentor = JSON.parse(decodeURIComponent(mentorString));
+          setMentor(parsedMentor);
+
+          const conversionRate = 0.0035; // Update if needed
+          const baseRateUSD = parsedMentor?.base_rate
+            ? (parsedMentor.base_rate * conversionRate).toFixed(2)
+            : "0.00";
+
+          setAmount(parseFloat(baseRateUSD));
+          setMentorId(parsedMentor?.user_id?._id || "");
+        } catch (error) {
+          console.error("Error parsing mentor object:", error);
+          toast({
+            title: "Invalid Mentor Data",
+            description: "There was an error processing mentor information.",
+            variant: "destructive",
+          });
+        }
+      }
     }
+  }, []);
+  useEffect(() => {
+    if (status === "loading") return;
   }, [status, router]);
 
-  // Show a loading message while checking authentication
   if (status === "loading") {
     return (
       <main className="h-screen flex items-center justify-center text-xl font-bold">
@@ -37,35 +62,10 @@ export default function PaymentPage() {
   }
 
   if (!session?.user) {
-    return null; // Prevent rendering if user is being redirected
+    return null;
   }
-
-  // Get mentor object from URL
-  const mentorString = searchParams.get("mentor");
-  let mentor = null;
-
-  try {
-    mentor = mentorString ? JSON.parse(decodeURIComponent(mentorString)) : null;
-  } catch (error) {
-    console.error("Error parsing mentor object:", error);
-    toast({
-      title: "Invalid Mentor Data",
-      description: "There was an error processing mentor information.",
-      variant: "destructive",
-    });
-  }
-
-  const conversionRate = 0.0035; // Update this rate if needed
-  const baseRateUSD = mentor?.base_rate ? (mentor.base_rate * conversionRate).toFixed(2) : "0.00";
-  const amount = baseRateUSD ? parseFloat(baseRateUSD) : 0;
-  const mentorId = mentor?.user_id?._id || "";
 
   if (!mentor || amount <= 0 || !mentorId) {
-    toast({
-      title: "Payment Error",
-      description: "Invalid payment details. Please try again.",
-      variant: "destructive",
-    });
 
     return (
       <main className="max-w-6xl mx-auto p-10 text-center border m-10 rounded-md bg-gradient-to-tr from-blue-500 to-purple-500 text-white">
@@ -78,7 +78,8 @@ export default function PaymentPage() {
     <main className="max-w-6xl mx-auto p-10 text-white text-center border m-10 rounded-md bg-gradient-to-tr from-blue-500 to-purple-500">
       <h1 className="text-4xl font-extrabold mb-4">Complete Your Payment</h1>
       <h2 className="text-2xl">
-        Pay <span className="font-bold">${amount.toFixed(2)}</span> to {mentor?.user_id?.username}
+        Pay <span className="font-bold">${amount.toFixed(2)}</span> to{" "}
+        {mentor?.user_id?.username}
       </h2>
 
       <Elements
@@ -89,7 +90,7 @@ export default function PaymentPage() {
           currency: "usd",
         }}
       >
-        <CheckoutPage amount={amount} mentorId={mentorId} />
+        <CheckoutPage amount={amount} mentorId={mentorId} userId={session.user._id} />
       </Elements>
     </main>
   );

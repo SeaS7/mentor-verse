@@ -93,7 +93,7 @@ const ConnectionsPage = () => {
                 <Image
                   src={
                     session?.user.role === "mentor"
-                      ? connection.studentId.profileImg
+                      ? connection.studentId.profileImg || "/default-avatar.png"
                       : connection.mentorId?.profileImg || "/default-avatar.png"
                   }
                   alt="Profile Image"

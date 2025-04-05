@@ -1,16 +1,16 @@
-import { resend } from "@/lib/resend";
+import nodemailer from "nodemailer";
+import { render } from "@react-email/render";
 import VerificationEmail from "../../emails/verificationEmail";
 import ForgotPasswordEmail from "../../emails/forgetPasswordEmail";
 import { JSX } from "react";
 
-
 type EmailType = "verification" | "forgot-password";
 
 interface EmailOptions {
-  email: string; // Recipient's email
-  username: string; // Recipient's username
-  otp: string; // One-time code or reset code
-  type: EmailType; // Type of email to send
+  email: string;
+  username: string;
+  otp: string;
+  type: EmailType;
 }
 
 export async function sendEmail({
@@ -20,31 +20,41 @@ export async function sendEmail({
   type,
 }: EmailOptions): Promise<{ success: boolean; message: string }> {
   try {
-    // Determine the subject and template based on email type
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.SMTP_EMAIL,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
     let subject: string;
-    let template: JSX.Element;
+    let html: string;
 
     if (type === "verification") {
       subject = "MentorVerse Verification Code";
-      template = VerificationEmail({ username, otp });
+      html = await render(
+        VerificationEmail({ username, otp }) as JSX.Element
+      );
     } else if (type === "forgot-password") {
       subject = "MentorVerse Password Reset Code";
-      template = ForgotPasswordEmail({ username, resetCode: otp });
+      html = await render(
+        ForgotPasswordEmail({ username, resetCode: otp }) as JSX.Element
+      );
     } else {
       throw new Error("Invalid email type");
     }
 
-    // Send the email via Resend
-    await resend.emails.send({
-      from: "onboarding@resend.dev",
+    await transporter.sendMail({
+      from: `"MentorVerse" <${process.env.SMTP_EMAIL}>`,
       to: email,
       subject,
-      react: template,
+      html,
     });
 
     return { success: true, message: "Email sent successfully." };
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("Email sending failed:", error);
     return { success: false, message: "Failed to send email." };
   }
 }

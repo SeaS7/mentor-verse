@@ -16,7 +16,7 @@ interface VerificationEmailProps {
 }
 
 export default function VerificationEmail({ username, otp }: VerificationEmailProps) {
-  const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+  const baseUrl = 'https://mentor-verse-ecru.vercel.app/';
 
   return (
     <Html lang="en" dir="ltr">

@@ -4,7 +4,7 @@ import { MentorModel as Mentor } from "@/models/mentor.model";
 import MentorStudentMatch from "@/models/connection.model";
 
 export async function GET(req: NextRequest) {
-  await dbConnect(); // Connect to database
+  await dbConnect();
 
   const searchParams = req.nextUrl.searchParams;
   const expertise = searchParams.get("expertise") || "";
@@ -12,33 +12,54 @@ export async function GET(req: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "10", 10);
 
   const query: any = {};
-
-  // ✅ Search by expertise (case-insensitive, partial match)
   if (expertise) {
     query.expertise = { $regex: expertise, $options: "i" };
   }
 
   try {
+    console.time("mentors-query");
+
     const total = await Mentor.countDocuments(query);
+
     const mentors = await Mentor.find(query)
-      .populate("user_id", "username email profileImg reputation createdAt") // ✅ Mentor's user details
-      .populate("reviews.user_id", "username profileImg") // ✅ Reviews user details
-      .select("expertise availability base_rate bio rating reviews user_id")
+      .populate("user_id", "username email profileImg reputation createdAt")
+      .select("expertise availability base_rate bio rating user_id") // ✅ removed heavy 'reviews' from here
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ createdAt: -1 });
-    const mentorsWithConnections = await Promise.all(
-      mentors.map(async (mentor) => {
-        const totalConnections = await MentorStudentMatch.countDocuments({
-          $or: [{ mentorId: mentor._id }, { studentId: mentor._id }],
-        });
+      .sort({ createdAt: -1 })
+      .lean(); // ✅ improves performance by returning plain JS objects
 
-        return {
-          ...mentor.toObject(),
-          totalConnections,
-        };
-      })
-    );
+    const mentorIds = mentors.map((m) => m._id);
+
+    // ✅ batch connection count instead of per-mentor loop
+    const connectionCounts = await MentorStudentMatch.aggregate([
+      {
+        $match: {
+          $or: [
+            { mentorId: { $in: mentorIds } },
+            { studentId: { $in: mentorIds } },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: "$mentorId",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const countMap = connectionCounts.reduce((acc, cur) => {
+      acc[cur._id.toString()] = cur.count;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const mentorsWithConnections = mentors.map((mentor) => ({
+      ...mentor,
+      totalConnections: countMap[mentor._id.toString()] || 0,
+    }));
+
+    console.timeEnd("mentors-query");
 
     return NextResponse.json({
       success: true,

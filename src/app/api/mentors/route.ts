@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConfig";
 import { MentorModel as Mentor } from "@/models/mentor.model";
 import MentorStudentMatch from "@/models/connection.model";
-
 export async function GET(req: NextRequest) {
   await dbConnect();
 
@@ -20,18 +19,18 @@ export async function GET(req: NextRequest) {
     console.time("mentors-query");
 
     const total = await Mentor.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
 
     const mentors = await Mentor.find(query)
       .populate("user_id", "username email profileImg reputation createdAt")
-      .select("expertise availability base_rate bio rating user_id") // ✅ removed heavy 'reviews' from here
+      .select("expertise availability base_rate bio rating user_id")
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 })
-      .lean(); // ✅ improves performance by returning plain JS objects
+      .lean();
 
     const mentorIds = mentors.map((m) => m._id);
 
-    // ✅ batch connection count instead of per-mentor loop
     const connectionCounts = await MentorStudentMatch.aggregate([
       {
         $match: {
@@ -65,6 +64,8 @@ export async function GET(req: NextRequest) {
       success: true,
       data: mentorsWithConnections,
       total,
+      totalPages,
+      currentPage: page,
     });
   } catch (error) {
     console.error("❌ Error fetching mentors:", error);

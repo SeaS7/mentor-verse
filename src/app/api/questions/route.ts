@@ -14,14 +14,17 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
+    const page = Number(searchParams.get("page") || 1);
     const limit = Number(searchParams.get("limit") || 5);
+    const skip = (page - 1) * limit;
 
     // Step 1: Get questions with author info
     const questions = await Question.find({})
       .sort({ createdAt: -1 })
+      .skip(skip)
       .limit(limit)
       .populate("authorId", "username reputation profileImg")
-      .lean();
+      .lean() as Array<{ _id: string; [key: string]: any }>;
 
     if (!questions.length) {
       return NextResponse.json({
@@ -61,20 +64,20 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Step 3: Map answers and votes to their questions
-    const answerMap = answerCounts.reduce((acc, item) => {
-      acc[item._id.toString()] = item.count;
-      return acc;
-    }, {} as Record<string, number>);
+    const answerMap = Object.fromEntries(
+      answerCounts.map((item) => [item._id.toString(), item.count])
+    );
 
-    const voteMap = voteCounts.reduce((acc, item) => {
-      const id = item._id.toString();
-      acc[id] = item.upvotes - item.downvotes;
-      return acc;
-    }, {} as Record<string, number>);
+    const voteMap = Object.fromEntries(
+      voteCounts.map((item) => [
+        item._id.toString(),
+        item.upvotes - item.downvotes,
+      ])
+    );
 
     // Step 4: Combine all data into final response
     const questionStats = questions.map((ques) => {
-      const id = ques._id.toString();
+      const id = (ques._id as string).toString();
       return {
         ...ques,
         totalAnswers: answerMap[id] || 0,

@@ -77,7 +77,12 @@ function QuestionsList() {
             <QuestionCard key={ques._id.toString()} ques={ques} />
           ))
         ) : (
-          <p className="text-gray-500 col-span-full text-center">No questions found.</p>
+          [...Array(8)].map((_, index) => (
+            <div
+              key={index}
+              className="h-40 animate-pulse bg-gray-200 dark:bg-gray-800 rounded-lg"
+            ></div>
+          ))
         )}
       </div>
       <div className="mt-10">

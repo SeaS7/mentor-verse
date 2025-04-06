@@ -77,7 +77,12 @@ function MentorsList() {
             <MentorCard key={mentor._id.toString()} mentor={mentor} />
           ))
         ) : (
-          <p className="text-gray-500 col-span-full text-center">No mentors found.</p>
+          [...Array(8)].map((_, index) => (
+            <div
+              key={index}
+              className="h-40 animate-pulse bg-gray-200 dark:bg-gray-800 rounded-lg"
+            ></div>
+          ))
         )}
       </div>
 

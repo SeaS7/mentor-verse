@@ -87,12 +87,12 @@ export const HeroParallax = ({ header }: { header: React.ReactNode }) => {
       {header}
       {/* Marquee for first row */}
       <MarqueeDemo
-        mentors={loading ? Array(5).fill(null) : firstRow}
-        reverse={false}
+        mentors={loading ? Array(5).fill(null) : firstRow.length === 0? Array(5).fill(null) : firstRow}
+        reverse={false} 
       />
       {/* Marquee for second row */}
       <MarqueeDemo
-        mentors={loading ? Array(5).fill(null) : secondRow}
+        mentors={loading ? Array(5).fill(null) : secondRow.length === 0? Array(5).fill(null) : secondRow}
         reverse={true}
       />
     </div>

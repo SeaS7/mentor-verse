@@ -46,7 +46,7 @@ const LatestQuestions = () => {
           <QuestionCard key={question._id} ques={question} />
         ))
       ) : (
-        <p className="text-center text-gray-500">No questions found.</p>
+        <SkeletonLoader />
       )}
     </div>
   );

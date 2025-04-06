@@ -5,7 +5,6 @@ import { Marquee } from "@/components/ui/marquee";
 import axios from "axios";
 import Link from "next/link";
 
-
 // Skeleton Loader Component
 const MentorCardSkeleton = () => {
   return (
@@ -46,15 +45,35 @@ export const HeroParallax = ({ header }: { header: React.ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(true); // Loading state
 
   useEffect(() => {
+    let isMounted = true; // for cleanup
     const fetchMentors = async () => {
-      try {
-        const response = await axios.get("/api/mentors?page=1&limit=10");
-        setMentors(response.data.data);
-      } catch (error) {
-        console.error("Error fetching mentors:", error);
-      } finally {
-        setLoading(false); // Once the mentors are loaded, set loading to false
+      let attempts = 0;
+      const maxRetries = 3;
+
+      while (attempts < maxRetries) {
+        try {
+          const response = await axios.get("/api/mentors?page=1&limit=10", {
+            timeout: 10000, // 10 seconds timeout
+          });
+          if (isMounted) {
+            setMentors(response.data.data);
+            setLoading(false);
+          }
+          break; // success, exit loop
+        } catch (err) {
+          attempts++;
+          console.error(`Attempt ${attempts} failed:`, err);
+          if (attempts === maxRetries && isMounted) {
+            setLoading(false);
+          }
+        }
       }
+    };
+
+    fetchMentors();
+
+    return () => {
+      isMounted = false;
     };
 
     fetchMentors();
@@ -67,9 +86,15 @@ export const HeroParallax = ({ header }: { header: React.ReactNode }) => {
     <div className="relative flex flex-col self-auto overflow-hidden py-40 w-full">
       {header}
       {/* Marquee for first row */}
-      <MarqueeDemo mentors={loading ? Array(5).fill(null) : firstRow} reverse={false} />
+      <MarqueeDemo
+        mentors={loading ? Array(5).fill(null) : firstRow}
+        reverse={false}
+      />
       {/* Marquee for second row */}
-      <MarqueeDemo mentors={loading ? Array(5).fill(null) : secondRow} reverse={true} />
+      <MarqueeDemo
+        mentors={loading ? Array(5).fill(null) : secondRow}
+        reverse={true}
+      />
     </div>
   );
 };
@@ -130,7 +155,7 @@ const MentorCard = ({
           ⭐ <div>{rating || "None"}</div>
         </li>
         <li className="flex flex-col items-center">
-        💰 <div>{connections} </div>
+          💰 <div>{connections} </div>
         </li>
         <li className="flex flex-col items-center">
           🏆 <div>{reputation}</div>
@@ -179,51 +204,6 @@ export function MarqueeDemo({
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // "use client";
 
